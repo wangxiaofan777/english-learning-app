@@ -17,6 +17,18 @@ public class MockLlmClient implements LlmClient {
 
   private static final long TYPE_DELAY_MS = 25;
 
+  private static final List<String> FREE_TALK_LINES = List.of(
+      "That's interesting! What got you into that?",
+      "Nice! How often do you do that?",
+      "I see. What do you enjoy most about it?",
+      "Sounds fun! What happened next?",
+      "Good point! Do your friends think the same way?",
+      "Wow, really? How did that make you feel?",
+      "Haha, classic! What would you do differently next time?",
+      "Interesting choice! If you had to pick one favorite, which one?",
+      "I love that. What's the plan for the weekend?",
+      "Totally get it. So what's keeping you busy these days?");
+
   @Override
   public String streamReply(ChatContext ctx, Consumer<String> onDelta) {
     String reply = scriptedReply(ctx);
@@ -68,6 +80,10 @@ public class MockLlmClient implements LlmClient {
   }
 
   private String scriptedReply(ChatContext ctx) {
+    // 自由聊天：不按脚本，轮流抛出自然的追问，让对话持续
+    if ("自由聊天".equals(ctx.topic())) {
+      return FREE_TALK_LINES.get(Math.max(0, ctx.userTurnCount() - 1) % FREE_TALK_LINES.size());
+    }
     List<String> lines = ctx.aiLines();
     if (lines == null || lines.isEmpty()) {
       return "Great job! Tell me more.";

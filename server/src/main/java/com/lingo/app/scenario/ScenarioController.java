@@ -42,6 +42,11 @@ public class ScenarioController {
     return ApiResponse.ok(scenarioService.recommend(track, practicedIds()));
   }
 
+  @GetMapping("/free-talk")
+  public ApiResponse<ScenarioService.ScenarioCard> freeTalk() {
+    return ApiResponse.ok(scenarioService.freeTalk());
+  }
+
   @GetMapping("/{id}")
   public ApiResponse<ScenarioService.ScenarioDetail> detail(@PathVariable Long id) {
     return ApiResponse.ok(scenarioService.detail(id));

@@ -11,6 +11,9 @@ export interface Profile {
   weakTags: string[];
   onboardingStep: string;
   streakDays: number;
+  xp: number;
+  level: number;
+  levelTitle: string;
 }
 
 export interface LoginResult {
@@ -152,6 +155,16 @@ export interface TodayView {
   dueCount: number;
   todayMinutes: number;
   items: TodayItem[];
+  xp: number;
+  dailySentence: string[];
+}
+
+export interface Badge {
+  code: string;
+  name: string;
+  description: string;
+  icon: string;
+  earned: boolean;
 }
 
 export interface StatsView {
@@ -160,6 +173,8 @@ export interface StatsView {
   wordsTotal: number;
   wordsLearning: number;
   week: { date: string; minutes: number }[];
+  weekXp: number;
+  totalXp: number;
 }
 
 export interface CourseCard {

@@ -11,6 +11,14 @@
       </view>
     </view>
 
+    <view class="card quiz-entry" @tap="goQuiz">
+      <view class="due-left">
+        <text class="due-title">⚡ 词汇速测</text>
+        <text class="due-sub">10 道中译英快问快答，答对涨经验</text>
+      </view>
+      <text class="quiz-go">GO →</text>
+    </view>
+
     <view v-if="entries.length === 0" class="card empty">
       <text class="empty-emoji">🌱</text>
       <text class="empty-title">词库还是空的</text>
@@ -63,6 +71,14 @@ function goReview() {
   uni.navigateTo({ url: "/pages/vocab/review" });
 }
 
+function goQuiz() {
+  if (entries.value.length < 4) {
+    uni.showToast({ title: "词库至少收藏 4 个词才能开测", icon: "none" });
+    return;
+  }
+  uni.navigateTo({ url: "/pages/vocab/quiz" });
+}
+
 function pronounce(word: string) {
   speak(word);
 }
@@ -112,6 +128,16 @@ function shortDate(iso: string): string {
 
 .due-right .muted {
   color: rgba(255, 255, 255, 0.8);
+}
+
+.quiz-entry {
+  border: 2rpx dashed #16a34a;
+}
+
+.quiz-go {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #16a34a;
 }
 
 .word-card .word-head {

@@ -3,7 +3,10 @@
     <view class="hero">
       <view class="hero-left">
         <text class="hero-greeting">{{ greeting }}，{{ nickname }}</text>
-        <text class="hero-sub">已连续学习 {{ today.streakDays }} 天 · 今天已学 {{ today.todayMinutes }} 分钟</text>
+        <text class="hero-sub">LV.{{ today.xp >= 0 ? level : 1 }} {{ levelTitle }} · 连续 {{ today.streakDays }} 天 · 今日 {{ today.todayMinutes }} 分钟</text>
+        <view class="xp-bar">
+          <view class="xp-inner" :style="{ width: xpPercent }" />
+        </view>
       </view>
       <view class="streak-badge">
         <text class="streak-num">{{ today.streakDays }}</text>
@@ -38,6 +41,15 @@
       </view>
     </view>
 
+    <view class="card sentence-card" v-if="today.dailySentence" @tap="speakSentence">
+      <view class="sentence-head">
+        <text class="chip">每日一句</text>
+        <text class="speak-hint">🔊 点一下听</text>
+      </view>
+      <text class="sentence-en" :user-select="true">{{ today.dailySentence[0] }}</text>
+      <text class="sentence-zh">{{ today.dailySentence[1] }}</text>
+    </view>
+
     <view class="card quick-card">
       <text class="muted">今日待复习</text>
       <text class="due-num">{{ today.dueCount }}</text>
@@ -54,10 +66,29 @@ import { api } from "../../utils/api";
 import type { TodayItem, TodayView } from "../../utils/types";
 import { ensureAuth, user } from "../../stores/user";
 import { greetingByHour } from "../../utils/format";
+import { speak } from "../../utils/speech";
 
 const today = ref<TodayView | null>(null);
 const greeting = computed(() => greetingByHour());
 const nickname = computed(() => user.profile?.nickname || "同学");
+const level = computed(() => Math.max(1, Math.floor(Math.sqrt((today.value?.xp || 0) / 50)) + 1));
+const levelTitle = computed(() => {
+  const titles = ["英语新手", "词汇学徒", "口语练习生", "场景闯将", "听说达人", "学习高手", "英语大师"];
+  return titles[Math.min(level.value, titles.length) - 1];
+});
+const currentLevelXp = computed(() => 50 * (level.value - 1) * (level.value - 1));
+const nextLevelXp = computed(() => 50 * level.value * level.value);
+const xpPercent = computed(() => {
+  const cur = today.value?.xp || 0;
+  const span = nextLevelXp.value - currentLevelXp.value;
+  return `${Math.min(100, Math.round(((cur - currentLevelXp.value) / span) * 100))}%`;
+});
+
+function speakSentence() {
+  if (today.value?.dailySentence) {
+    speak(today.value.dailySentence[0]);
+  }
+}
 
 const iconFor = (item: TodayItem) => {
   if (item.kind === "review") return "📖";
@@ -223,6 +254,52 @@ async function startChat(scenarioId: string) {
   font-size: 24rpx;
   color: #16a34a;
   font-weight: 600;
+}
+
+.xp-bar {
+  margin-top: 14rpx;
+  height: 10rpx;
+  width: 320rpx;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999rpx;
+  overflow: hidden;
+}
+
+.xp-inner {
+  height: 100%;
+  background: #ffffff;
+  border-radius: 999rpx;
+}
+
+.sentence-card {
+  border-left: 8rpx solid #16a34a;
+}
+
+.sentence-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14rpx;
+}
+
+.speak-hint {
+  font-size: 22rpx;
+  color: #9ca3af;
+}
+
+.sentence-en {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+}
+
+.sentence-zh {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #9ca3af;
 }
 
 .quick-card {

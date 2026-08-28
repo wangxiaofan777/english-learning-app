@@ -41,6 +41,10 @@
       "style": { "navigationBarTitleText": "复习" }
     },
     {
+      "path": "pages/vocab/quiz",
+      "style": { "navigationBarTitleText": "词汇速测" }
+    },
+    {
       "path": "pages/listen/listen",
       "style": { "navigationBarTitleText": "听力精听" }
     },

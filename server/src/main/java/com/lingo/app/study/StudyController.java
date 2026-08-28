@@ -21,9 +21,10 @@ import java.util.Set;
 public class StudyController {
 
   private static final Set<String> KINDS =
-      Set.of("review", "scenario", "dialog", "listening", "shadowing");
+      Set.of("review", "scenario", "dialog", "listening", "shadowing", "quiz", "daily");
 
   private final StudyService studyService;
+  private final AchievementService achievementService;
 
   @GetMapping("/today")
   public ApiResponse<StudyService.TodayView> today() {
@@ -33,6 +34,11 @@ public class StudyController {
   @GetMapping("/stats")
   public ApiResponse<StudyService.StatsView> stats() {
     return ApiResponse.ok(studyService.stats(UserContext.get()));
+  }
+
+  @GetMapping("/achievements")
+  public ApiResponse<?> achievements() {
+    return ApiResponse.ok(achievementService.badges(UserContext.get()));
   }
 
   /** 听力精听、跟读等端上练习的自报时长（用于打卡与统计） */

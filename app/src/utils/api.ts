@@ -1,4 +1,5 @@
 import type {
+  Badge,
   ConversationDetail,
   CourseCard,
   CourseDetail,
@@ -119,6 +120,8 @@ export const api = {
     }),
   today: () => request<TodayView>("GET", "/api/v1/today"),
   stats: () => request<StatsView>("GET", "/api/v1/stats"),
+  achievements: () => request<Badge[]>("GET", "/api/v1/achievements"),
+  freeTalk: () => request<ScenarioCard>("GET", "/api/v1/scenarios/free-talk"),
   recordPractice: (kind: string, minutes = 1, count = 1) =>
     request<void>("POST", "/api/v1/study/record", { kind, minutes, count }),
   courses: () => request<CourseCard[]>("GET", "/api/v1/courses"),

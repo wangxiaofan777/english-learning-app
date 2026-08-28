@@ -86,14 +86,33 @@ NEXT=$(curl -s -X POST "$BASE/vocab/$VOCABID/grade" -H "$AUTH" -H 'Content-Type:
   -d '{"rating":3}' | jqpy "d['data']['nextDueAt']")
 [ "$DUE" -ge 1 ] && [ -n "$NEXT" ]; check "生词 id=$VOCABID 评分后下次到期 $NEXT" $?
 
-echo "== 10. 今日计划与统计 =="
+echo "== 10. 今日计划与统计（每日打卡+经验） =="
 TODAY=$(curl -s "$BASE/today" -H "$AUTH")
 STREAK=$(echo "$TODAY" | jqpy "d['data']['streakDays']")
 ITEMS=$(echo "$TODAY" | jqpy "len(d['data']['items'])")
 MINUTES=$(curl -s "$BASE/stats" -H "$AUTH" | jqpy "d['data']['totalMinutes']")
-[ "$ITEMS" = "3" ] && [ "$STREAK" -ge 1 ] && [ "$MINUTES" -ge 1 ]; check "streak=$STREAK 计划$ITEMS项 已学${MINUTES}分钟" $?
+SENT=$(echo "$TODAY" | jqpy "len(d['data']['dailySentence'])")
+[ "$ITEMS" = "3" ] && [ "$STREAK" -ge 1 ] && [ "$MINUTES" -ge 1 ] && [ "$SENT" = "2" ]
+check "streak=$STREAK 计划${ITEMS}项 已学${MINUTES}分钟 每日一句✓" $?
 
-echo "== 11. 听说练习计时 =="
+echo "== 10.5 XP / 等级 / 成就 =="
+XP=$(curl -s "$BASE/me" -H "$AUTH" | jqpy "d['data']['xp']")
+LEVEL=$(curl -s "$BASE/me" -H "$AUTH" | jqpy "d['data']['level']")
+BADGES=$(curl -s "$BASE/achievements" -H "$AUTH" | jqpy "len(d['data'])")
+EARNED=$(curl -s "$BASE/achievements" -H "$AUTH" | jqpy "len([b for b in d['data'] if b['earned']])")
+[ "$XP" -ge 5 ] && [ "$LEVEL" -ge 1 ] && [ "$BADGES" -ge 10 ] && [ "$EARNED" -ge 1 ]
+check "XP=$XP LV.$LEVEL 徽章$EARNED/$BADGES 已点亮" $?
+
+echo "== 11. 自由聊天 =="
+FREEID=$(curl -s "$BASE/scenarios/free-talk" -H "$AUTH" | jqpy "d['data']['id']")
+FREECONV=$(curl -s -X POST "$BASE/conversations" -H "$AUTH" -H 'Content-Type: application/json' \
+  -d "{\"scenarioId\":$FREEID}")
+FREECID=$(echo "$FREECONV" | jqpy "d['data']['conversationId']")
+FREER=$(curl -s -X POST "$BASE/conversations/$FREECID/messages" -H "$AUTH" -H 'Content-Type: application/json' \
+  -d '{"content":"I watched a movie last night."}' | jqpy "len(d['data']['content'])")
+[ -n "$FREECID" ] && [ "$FREER" -ge 5 ]; check "自由聊天回复正常" $?
+
+echo "== 12. 听说练习计时 =="
 curl -s -X POST "$BASE/study/record" -H "$AUTH" -H 'Content-Type: application/json' \
   -d '{"kind":"listening","minutes":5,"count":8}' >/dev/null
 NEWMIN=$(curl -s "$BASE/stats" -H "$AUTH" | jqpy "d['data']['totalMinutes']")

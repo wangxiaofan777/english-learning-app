@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS t_user_profile (
   weak_tags        TEXT,
   onboarding_step  VARCHAR(16) DEFAULT 'goal',
   streak_days      INT DEFAULT 0,
+  xp               INT DEFAULT 0,
   last_study_date  VARCHAR(10),
   created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -126,6 +127,7 @@ CREATE TABLE IF NOT EXISTS t_study_log (
   kind       VARCHAR(16),
   minutes    INT DEFAULT 0,
   count      INT DEFAULT 1,
+  xp         INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_study_user_date ON t_study_log (user_id, study_date);
@@ -177,5 +179,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uk_lesson_progress ON t_lesson_progress (user_
 
 -- 历史库平滑迁移
 ALTER TABLE t_user_profile ADD COLUMN IF NOT EXISTS age_band VARCHAR(16);
+ALTER TABLE t_user_profile ADD COLUMN IF NOT EXISTS xp INT DEFAULT 0;
+ALTER TABLE t_study_log ADD COLUMN IF NOT EXISTS xp INT DEFAULT 0;
 ALTER TABLE t_course ADD COLUMN IF NOT EXISTS exam_tag VARCHAR(32);
 ALTER TABLE t_course ADD COLUMN IF NOT EXISTS months INT DEFAULT 3;

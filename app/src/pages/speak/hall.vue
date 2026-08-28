@@ -12,6 +12,14 @@
       </view>
     </view>
 
+    <view class="card free-talk-card" @tap="startFreeTalk">
+      <view class="ft-body">
+        <text class="ft-title">🎙️ 自由聊天</text>
+        <text class="ft-sub">不限场景随便聊，AI 聊伴接住你说的每句话</text>
+      </view>
+      <text class="ft-go">开聊 →</text>
+    </view>
+
     <view v-if="scenarios.length === 0" class="card empty">
       <text class="muted">这个轨道的场景准备中，先看看其他轨道吧</text>
     </view>
@@ -92,6 +100,16 @@ async function startChat(scenarioId: string) {
   }
 }
 
+async function startFreeTalk() {
+  uni.showLoading({ title: "找聊伴…" });
+  try {
+    const free = await api.freeTalk();
+    await startChat(free.id);
+  } catch (e) {
+    uni.hideLoading();
+  }
+}
+
 function goListen(scenarioId: string) {
   uni.navigateTo({ url: `/pages/listen/listen?id=${scenarioId}` });
 }
@@ -105,6 +123,36 @@ function goShadow(scenarioId: string) {
 .hall-page {
   min-height: 100vh;
   padding: 24rpx 0 60rpx;
+}
+
+.free-talk-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(120deg, #0f766e, #16a34a);
+  color: #ffffff;
+}
+
+.ft-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.ft-title {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.ft-sub {
+  font-size: 22rpx;
+  opacity: 0.85;
+}
+
+.ft-go {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .track-bar {

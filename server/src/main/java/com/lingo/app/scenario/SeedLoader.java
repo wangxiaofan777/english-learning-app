@@ -91,7 +91,25 @@ public class SeedLoader implements CommandLineRunner {
         vocabMapper.insert(vocab);
       }
     }
-    log.info("seeded {} scenarios", seed.getScenarios().size());
+    // 自由聊天场景（不进大厅列表，由「自由聊天」入口直达）
+    if (scenarioMapper.selectCount(new LambdaQueryWrapper<ScenarioEntity>()
+        .eq(ScenarioEntity::getTrack, "free")) == 0) {
+      ScenarioEntity free = new ScenarioEntity();
+      free.setTrack("free");
+      free.setTopic("自由聊天");
+      free.setTitleZh("自由聊天");
+      free.setTitleEn("Free Talk");
+      free.setCefr("A2");
+      free.setRoleSetting("FREE_TALK: You are a friendly English chat buddy. No script — "
+          + "just natural conversation about the learner's day, hobbies and opinions, "
+          + "always ending with a follow-up question.");
+      free.setIntroZh("不限场景，想到什么聊什么");
+      free.setSource("seed");
+      free.setStatus("published");
+      free.setSortNo(-1);
+      scenarioMapper.insert(free);
+      log.info("seeded free-talk scenario");
+    }
   }
 
   /** 重建课程目录：清掉旧课程/报名/进度，按大纲重新生成 */

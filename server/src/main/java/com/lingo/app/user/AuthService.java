@@ -85,7 +85,7 @@ public class AuthService {
   public record ProfileView(Long userId, String nickname, Boolean isGuest, String ageBand,
                             String goalTrack, Integer dailyMinutes, String cefrLevel,
                             java.util.List<String> weakTags, String onboardingStep,
-                            Integer streakDays) {
+                            Integer streakDays, Integer xp, Integer level, String levelTitle) {
 
     public static ProfileView of(UserEntity u, UserProfileEntity p) {
       java.util.List<String> tags = java.util.List.of();
@@ -98,9 +98,11 @@ public class AuthService {
           // weakTags 仅用于展示，解析失败时给空列表
         }
       }
+      int xp = p.getXp() == null ? 0 : p.getXp();
+      int level = com.lingo.app.study.StudyService.levelOf(xp);
       return new ProfileView(u.getId(), u.getNickname(), u.getIsGuest(), p.getAgeBand(),
           p.getGoalTrack(), p.getDailyMinutes(), p.getCefrLevel(), tags, p.getOnboardingStep(),
-          p.getStreakDays());
+          p.getStreakDays(), xp, level, com.lingo.app.study.StudyService.levelTitle(level));
     }
   }
 }

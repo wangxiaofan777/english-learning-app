@@ -51,6 +51,34 @@
       </view>
     </template>
 
+    <!-- 理解小测 -->
+    <template v-else-if="phase === 'quiz' && quizQuestion">
+      <view class="top-row">
+        <text class="muted">理解小测 {{ quizIdx + 1 }} / {{ quizQuestions.length }}</text>
+        <text class="chip">🎧 刚听过的内容</text>
+      </view>
+      <view class="card quiz-card">
+        <text class="quiz-hint">这句英文的意思是？</text>
+        <text class="quiz-en">{{ quizQuestion.en }}</text>
+        <view class="quiz-options">
+          <view
+            v-for="opt in quizQuestion.options"
+            :key="opt"
+            class="quiz-option"
+            :class="quizClass(opt)"
+            @tap="chooseQuiz(opt)"
+          >
+            <text>{{ opt }}</text>
+          </view>
+        </view>
+      </view>
+      <view class="nav-row">
+        <button class="btn-primary nav-next" :class="{ disabled: !quizChosen }" @tap="quizNext">
+          {{ quizIdx === quizQuestions.length - 1 ? "完成" : "下一题" }}
+        </button>
+      </view>
+    </template>
+
     <!-- 完成 -->
     <template v-else-if="phase === 'done'">
       <view class="card done-card">
@@ -81,8 +109,19 @@ const idx = ref(0);
 const blind = ref(true);
 const revealed = ref(false);
 const playing = ref(false);
-const phase = ref<"loading" | "listening" | "done">("loading");
+const phase = ref<"loading" | "listening" | "quiz" | "done">("loading");
 let stopRequested = false;
+
+interface QuizQ {
+  en: string;
+  answer: string;
+  options: string[];
+}
+const quizQuestions = ref<QuizQ[]>([]);
+const quizIdx = ref(0);
+const quizChosen = ref("");
+const quizCorrect = ref(0);
+const quizQuestion = computed(() => quizQuestions.value[quizIdx.value]);
 
 const lines = computed(() => detail.value?.lines || []);
 const line = computed(() => lines.value[idx.value]);
@@ -137,10 +176,59 @@ async function next() {
     playCurrent();
     return;
   }
-  // 完成：计入学习时长 + 标记课时完成
+  buildQuiz();
+  phase.value = "quiz";
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** 理解小测：听过的句子选中文意思 */
+function buildQuiz() {
+  const ls = lines.value;
+  const picked = shuffle(ls).slice(0, Math.min(3, ls.length));
+  quizQuestions.value = picked.map((l) => {
+    const others = shuffle(ls.filter((x) => x !== l).map((x) => x.zh)).slice(0, 3);
+    return { en: l.en, answer: l.zh, options: shuffle([l.zh, ...others]) };
+  });
+  quizIdx.value = 0;
+  quizChosen.value = "";
+  quizCorrect.value = 0;
+}
+
+function quizClass(opt: string) {
+  if (!quizChosen.value) return {};
+  return {
+    right: opt === quizQuestion.value.answer,
+    wrong: opt === quizChosen.value && opt !== quizQuestion.value.answer,
+  };
+}
+
+function chooseQuiz(opt: string) {
+  if (quizChosen.value) return;
+  quizChosen.value = opt;
+  if (opt === quizQuestion.value.answer) {
+    quizCorrect.value += 1;
+  }
+}
+
+async function quizNext() {
+  if (!quizChosen.value) return;
+  if (quizIdx.value < quizQuestions.value.length - 1) {
+    quizIdx.value += 1;
+    quizChosen.value = "";
+    return;
+  }
+  // 完成：计入学习时长 + 课时 + 按小测表现结算
   const minutes = Math.max(1, Math.round(lines.value.length / 4));
   try {
-    await api.recordPractice("listening", minutes, lines.value.length);
+    await api.recordPractice("listening", minutes, lines.value.length + quizCorrect.value);
     await api.completeLesson("listening", scenarioId.value, null);
   } catch (e) {
     // 计时失败不打断完成页
@@ -295,6 +383,54 @@ function goBack() {
 
 .tip-card {
   margin-top: 32rpx;
+}
+
+.quiz-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding: 44rpx 36rpx;
+}
+
+.quiz-hint {
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
+.quiz-en {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  margin-top: 8rpx;
+}
+
+.quiz-option {
+  background: #f9fafb;
+  border: 3rpx solid transparent;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  color: #111827;
+}
+
+.quiz-option.right {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #15803d;
+  font-weight: 600;
+}
+
+.quiz-option.wrong {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .tip-card .muted {

@@ -21,6 +21,7 @@ public class UserProfileEntity {
   private String weakTags;
   private String onboardingStep;
   private Integer streakDays;
+  private Integer xp;
   private String lastStudyDate;
   private LocalDateTime createdAt;
 }

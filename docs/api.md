@@ -22,6 +22,7 @@ ID 均以字符串形式返回（防 JS 精度丢失）。
 | GET | `/scenarios?track=&page=&size=` | 场景卡片列表（含 lineCount/vocabCount/practiced） |
 | GET | `/scenarios/recommended` | 今日推荐场景（当前轨道下未练过的第一个） |
 | GET | `/scenarios/{id}` | 场景详情：roleSetting + lines + vocab |
+| GET | `/scenarios/free-talk` | 自由聊天场景（不占课程，大厅直达入口） |
 
 ## 对话
 
@@ -62,9 +63,10 @@ child→小学(KET/PET)；teen 按等级→初中(中考)/高中(高考)；成�
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/today` | 每日三件事 `{date, streakDays, cefrLevel, dueCount, todayMinutes, items[3]}` |
-| GET | `/stats` | `{totalMinutes, totalDialogs, wordsTotal, wordsLearning, week[7]}` |
-| POST | `/study/record` | 端上练习计时，body `{kind: listening/shadowing, minutes?, count?}`，计入打卡与统计 |
+| GET | `/today` | 每日三件事 + 打卡：`{date, streakDays, cefrLevel, dueCount, todayMinutes, items[3], xp, dailySentence[en,zh]}`；每日首次调用自动打卡 +5 XP |
+| GET | `/stats` | `{totalMinutes, totalDialogs, wordsTotal, wordsLearning, week[7], weekXp, totalXp}` |
+| GET | `/achievements` | 成就徽章墙（实时计算）：`[{code, name, description, icon, earned}]` |
+| POST | `/study/record` | 端上练习计时，body `{kind: listening/shadowing/quiz/..., minutes?, count?}`；XP 按行为类型由服务端结算（对话+30/精听+20/跟读+25/复习每词+2/速测每题+3/打卡+5） |
 
 ## 管理（X-Admin-Token 鉴权）
 

@@ -10,10 +10,17 @@
           <text class="chip chip--amber">连续 {{ profile.streakDays }} 天</text>
         </view>
       </view>
+      <view class="level-box">
+        <text class="level-num">LV.{{ profile.level }}</text>
+        <text class="level-title">{{ profile.levelTitle }}</text>
+      </view>
     </view>
 
-    <view class="card stats-card">
-      <text class="stats-title">学习统计</text>
+    <view class="card">
+      <view class="stats-title-row">
+        <text class="stats-title">学习统计</text>
+        <text class="chip">本周 +{{ stats?.weekXp || 0 }} 经验</text>
+      </view>
       <view class="stats-grid">
         <view class="stat-item">
           <text class="stat-num">{{ minutesToText(stats?.totalMinutes || 0) }}</text>
@@ -36,6 +43,22 @@
             <view class="chart-bar" :style="{ height: barHeight(d.minutes) }" />
           </view>
           <text class="chart-label">{{ d.date.slice(8) }}日</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="stats-title">成就墙 · {{ earnedCount }}/{{ badges.length }}</text>
+      <view class="badge-grid">
+        <view
+          v-for="b in badges"
+          :key="b.code"
+          class="badge-item"
+          :class="{ locked: !b.earned }"
+        >
+          <text class="badge-icon">{{ b.icon }}</text>
+          <text class="badge-name">{{ b.name }}</text>
+          <text class="badge-desc">{{ b.description }}</text>
         </view>
       </view>
     </view>
@@ -63,22 +86,26 @@
 import { computed, ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import { api } from "../../utils/api";
-import type { Profile, StatsView } from "../../utils/types";
+import type { Badge, Profile, StatsView } from "../../utils/types";
 import { clearAuth, ensureAuth } from "../../stores/user";
 import { minutesToText, trackLabel } from "../../utils/format";
 
 const profile = ref<Profile | null>(null);
 const stats = ref<StatsView | null>(null);
+const badges = ref<Badge[]>([]);
 
 const avatarText = computed(() => (profile.value?.nickname || "L").slice(0, 1));
+const earnedCount = computed(() => badges.value.filter((b) => b.earned).length);
 const maxMinutes = computed(() =>
   Math.max(10, ...(stats.value?.week || []).map((d) => d.minutes))
 );
 
 onShow(async () => {
   if (!ensureAuth()) return;
-  profile.value = await api.me();
-  stats.value = await api.stats();
+  const [me, s, b] = await Promise.all([api.me(), api.stats(), api.achievements()]);
+  profile.value = me;
+  stats.value = s;
+  badges.value = b;
 });
 
 function barHeight(minutes: number): string {
@@ -104,6 +131,73 @@ function logout() {
 .mine-page {
   min-height: 100vh;
   padding: 24rpx 0 60rpx;
+}
+
+.level-box {
+  margin-left: auto;
+  background: #f0fdf4;
+  border-radius: 16rpx;
+  padding: 14rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.level-num {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #16a34a;
+}
+
+.level-title {
+  font-size: 20rpx;
+  color: #15803d;
+}
+
+.stats-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.badge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18rpx;
+}
+
+.badge-item {
+  width: calc(33.33% - 12rpx);
+  background: #f9fafb;
+  border-radius: 16rpx;
+  padding: 22rpx 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+  text-align: center;
+}
+
+.badge-item.locked {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.badge-icon {
+  font-size: 44rpx;
+}
+
+.badge-name {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.badge-desc {
+  font-size: 18rpx;
+  color: #9ca3af;
+  line-height: 1.4;
 }
 
 .profile-card {

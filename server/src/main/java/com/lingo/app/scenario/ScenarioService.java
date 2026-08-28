@@ -22,8 +22,9 @@ public class ScenarioService {
   public List<ScenarioCard> list(String track, long page, long size, Set<Long> practicedIds) {
     LambdaQueryWrapper<ScenarioEntity> qw = new LambdaQueryWrapper<ScenarioEntity>()
         .eq(ScenarioEntity::getStatus, "published")
-        // 课程大纲的模板场景只通过课时进入，不进入自由练习大厅
+        // 课程大纲的模板场景只通过课时进入；自由聊天场景有自己的入口
         .ne(ScenarioEntity::getSource, "template")
+        .ne(ScenarioEntity::getTrack, "free")
         .eq(track != null && !track.isBlank(), ScenarioEntity::getTrack, track)
         .orderByAsc(ScenarioEntity::getSortNo)
         .orderByAsc(ScenarioEntity::getId);
@@ -31,6 +32,16 @@ public class ScenarioService {
     return result.getRecords().stream()
         .map(s -> toCard(s, practicedIds.contains(s.getId())))
         .toList();
+  }
+
+  /** 自由聊天场景（唯一，track=free） */
+  public ScenarioCard freeTalk() {
+    ScenarioEntity free = scenarioMapper.selectOne(new LambdaQueryWrapper<ScenarioEntity>()
+        .eq(ScenarioEntity::getTrack, "free").last("limit 1"));
+    if (free == null) {
+      throw ApiException.notFound("自由聊天暂不可用");
+    }
+    return toCard(free, false);
   }
 
   public ScenarioDetail detail(Long id) {

@@ -18,5 +18,6 @@ public class StudyLogEntity {
   private String kind;
   private Integer minutes;
   private Integer count;
+  private Integer xp;
   private LocalDateTime createdAt;
 }
