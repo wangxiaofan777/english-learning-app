@@ -1,5 +1,7 @@
 import type {
   ConversationDetail,
+  CourseCard,
+  CourseDetail,
   CreateConversationResult,
   FinishResult,
   LoginResult,
@@ -83,8 +85,9 @@ export const api = {
   wechatLogin: (code: string, nickname?: string) =>
     request<LoginResult>("POST", "/api/v1/auth/wechat", { code, nickname }),
   me: () => request<Profile>("GET", "/api/v1/me"),
-  onboarding: (goalTrack: string, dailyMinutes: number) =>
+  onboarding: (ageBand: string | null, goalTrack: string, dailyMinutes: number) =>
     request<{ nextStep: string; profile: Profile }>("POST", "/api/v1/onboarding", {
+      ageBand,
       goalTrack,
       dailyMinutes,
     }),
@@ -118,6 +121,15 @@ export const api = {
   stats: () => request<StatsView>("GET", "/api/v1/stats"),
   recordPractice: (kind: string, minutes = 1, count = 1) =>
     request<void>("POST", "/api/v1/study/record", { kind, minutes, count }),
+  courses: () => request<CourseCard[]>("GET", "/api/v1/courses"),
+  currentCourse: () => request<CourseDetail | null>("GET", "/api/v1/courses/current"),
+  enrollCourse: (id: string) => request<CourseCard>("POST", `/api/v1/courses/${id}/enroll`),
+  completeLesson: (lessonType: string, scenarioId: string, score?: number) =>
+    request<{ newlyDone: boolean; doneCount: number; totalCount: number; courseFinished: boolean }>(
+      "POST",
+      "/api/v1/courses/complete",
+      { lessonType, scenarioId, score }
+    ),
 };
 
 type AnyObject = Record<string, unknown>;

@@ -82,8 +82,8 @@ public class AuthService {
   public record LoginResponse(String token, String onboardingStep, ProfileView profile) {
   }
 
-  public record ProfileView(Long userId, String nickname, Boolean isGuest, String goalTrack,
-                            Integer dailyMinutes, String cefrLevel,
+  public record ProfileView(Long userId, String nickname, Boolean isGuest, String ageBand,
+                            String goalTrack, Integer dailyMinutes, String cefrLevel,
                             java.util.List<String> weakTags, String onboardingStep,
                             Integer streakDays) {
 
@@ -98,8 +98,9 @@ public class AuthService {
           // weakTags 仅用于展示，解析失败时给空列表
         }
       }
-      return new ProfileView(u.getId(), u.getNickname(), u.getIsGuest(), p.getGoalTrack(),
-          p.getDailyMinutes(), p.getCefrLevel(), tags, p.getOnboardingStep(), p.getStreakDays());
+      return new ProfileView(u.getId(), u.getNickname(), u.getIsGuest(), p.getAgeBand(),
+          p.getGoalTrack(), p.getDailyMinutes(), p.getCefrLevel(), tags, p.getOnboardingStep(),
+          p.getStreakDays());
     }
   }
 }

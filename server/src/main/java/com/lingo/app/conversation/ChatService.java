@@ -35,6 +35,7 @@ public class ChatService {
   private final LlmClient llmClient;
   private final ObjectMapper objectMapper;
   private final StudyService studyService;
+  private final com.lingo.app.course.CourseService courseService;
 
   private static final ExecutorService SSE_POOL = Executors.newFixedThreadPool(32, r -> {
     Thread t = new Thread(r, "sse-worker");
@@ -168,6 +169,7 @@ public class ChatService {
     conversationMapper.updateById(conv);
 
     studyService.record(userId, "dialog", Math.max(1, conv.getMsgCount() / 4), 1);
+    courseService.completeLesson(userId, "dialog", conv.getScenarioId(), null);
     return new FinishResult(recap, vocab);
   }
 

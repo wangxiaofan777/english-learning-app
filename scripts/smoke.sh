@@ -24,7 +24,7 @@ STEP=$(curl -s -X POST "$BASE/onboarding" -H "$AUTH" -H 'Content-Type: applicati
   -d '{"goalTrack":"work","dailyMinutes":15}' | jqpy "d['data']['nextStep']")
 [ "$STEP" = "placement" ]; check "onboarding → next=placement" $?
 
-echo "== 4. 测评 =="
+echo "== 4. 测评（自动派课） =="
 QCOUNT=$(curl -s "$BASE/placement/questions" -H "$AUTH" | jqpy "len(d['data'])")
 ANSWERS=$(curl -s "$BASE/placement/questions" -H "$AUTH" | python3 -c "
 import sys, json
@@ -34,6 +34,22 @@ print(json.dumps({q['id']: keys[i % 4] for i, q in enumerate(qs)}))")
 CEFR=$(curl -s -X POST "$BASE/placement/submit" -H "$AUTH" -H 'Content-Type: application/json' \
   -d "{\"answers\":$ANSWERS,\"spokenText\":\"I am a data analyst and I like charts.\"}" | jqpy "d['data']['cefr']")
 [ "$QCOUNT" = "10" ] && [ -n "$CEFR" ]; check "placement 10题 → 定级 $CEFR" $?
+
+echo "== 4.5 课程自动制定 =="
+CUR=$(curl -s "$BASE/courses/current" -H "$AUTH")
+CTITLE=$(echo "$CUR" | jqpy "d['data']['titleZh'] if d['data'] else None")
+CCOUNT=$(curl -s "$BASE/courses" -H "$AUTH" | jqpy "len(d['data'])")
+LESSON0=$(echo "$CUR" | jqpy "[l for l in d['data']['lessons'] if l['status']=='current'][0]['titleZh']")
+[ -n "$CTITLE" ] && [ "$CCOUNT" -ge 2 ] && [ -n "$LESSON0" ]; check "自动报名「$CTITLE」共$CCOUNT门课，当前: $LESSON0" $?
+
+echo "== 4.6 完课推进（精听第1课场景后对话解锁） =="
+SCID0=$(echo "$CUR" | jqpy "[l for l in d['data']['lessons'] if l['status']=='current'][0]['scenarioId']")
+curl -s -X POST "$BASE/courses/complete" -H "$AUTH" -H 'Content-Type: application/json' \
+  -d "{\"lessonType\":\"dialog\",\"scenarioId\":$SCID0}" >/dev/null
+CUR2=$(curl -s "$BASE/courses/current" -H "$AUTH")
+DONE1=$(echo "$CUR2" | jqpy "d['data']['doneCount']")
+NEXTTYPE=$(echo "$CUR2" | jqpy "[l for l in d['data']['lessons'] if l['status']=='current'][0]['lessonType']")
+[ "$DONE1" -ge 1 ] && [ -n "$NEXTTYPE" ]; check "完课后进度 $DONE1 课，下一课类型: $NEXTTYPE" $?
 
 echo "== 5. 场景列表与推荐 =="
 SCOUNT=$(curl -s "$BASE/scenarios?track=work" -H "$AUTH" | jqpy "len(d['data'])")

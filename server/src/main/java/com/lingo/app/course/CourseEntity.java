@@ -1,4 +1,4 @@
-package com.lingo.app.user;
+package com.lingo.app.course;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -7,20 +7,18 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-@TableName("t_user_profile")
-public class UserProfileEntity {
+@TableName("t_course")
+public class CourseEntity {
 
   @TableId(type = IdType.ASSIGN_ID)
   private Long id;
 
-  private Long userId;
+  private String track;
   private String ageBand;
-  private String goalTrack;
-  private Integer dailyMinutes;
-  private String cefrLevel;
-  private String weakTags;
-  private String onboardingStep;
-  private Integer streakDays;
-  private String lastStudyDate;
+  private String cefr;
+  private String titleZh;
+  private String titleEn;
+  private String description;
+  private Integer sortNo;
   private LocalDateTime createdAt;
 }

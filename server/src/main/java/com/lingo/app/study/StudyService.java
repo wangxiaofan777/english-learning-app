@@ -27,6 +27,7 @@ public class StudyService {
   private final VocabEntryMapper vocabMapper;
   private final ConversationMapper conversationMapper;
   private final ScenarioService scenarioService;
+  private final com.lingo.app.course.CourseService courseService;
 
   public void record(Long userId, String kind, int minutes, int count) {
     StudyLogEntity log = new StudyLogEntity();
@@ -74,19 +75,49 @@ public class StudyService {
             .eq(ConversationEntity::getUserId, userId)
             .isNotNull(ConversationEntity::getScenarioId))
         .forEach(c -> practicedAll.add(c.getScenarioId()));
-    ScenarioService.ScenarioCard recommend = scenarioService.recommend(track, practicedAll);
 
-    boolean scenarioDone = recommend != null && practicedToday.contains(recommend.id());
+    // 场景任务优先跟随当前课程的当前课时；无课程时回退到轨道推荐
+    com.lingo.app.course.CourseService.CourseDetail myCourse = courseService.current(userId);
+    com.lingo.app.course.CourseService.LessonView lesson = myCourse == null ? null
+        : myCourse.lessons().stream()
+            .filter(l -> "current".equals(l.status()) && l.scenarioId() != null)
+            .findFirst().orElse(null);
+
+    Long scenarioId;
+    String scenarioTitle;
+    String lessonType;
+    Long lessonId;
+    boolean scenarioDone;
+    if (lesson != null) {
+      scenarioId = lesson.scenarioId();
+      scenarioTitle = lesson.titleZh();
+      lessonType = lesson.lessonType();
+      lessonId = lesson.id();
+      scenarioDone = false;
+    } else {
+      ScenarioService.ScenarioCard recommend = scenarioService.recommend(track, practicedAll);
+      scenarioId = recommend == null ? null : recommend.id();
+      scenarioTitle = recommend == null ? null : recommend.titleZh();
+      lessonType = null;
+      lessonId = null;
+      scenarioDone = recommend != null && practicedToday.contains(recommend.id());
+    }
+
     List<TodayItem> items = new ArrayList<>();
     int reviewTarget = dueCount == 0 ? 0 : (int) Math.min(15, dueCount);
     items.add(new TodayItem("review", "复习生词", reviewTarget, reviewCount,
         dueCount == 0 ? reviewCount > 0 : reviewCount >= reviewTarget,
-        null, null));
-    items.add(new TodayItem("scenario", "学场景", 1, scenarioDone ? 1 : 0, scenarioDone,
-        recommend == null ? null : recommend.id(),
-        recommend == null ? null : recommend.titleZh()));
+        null, null, null, null));
+    String scenarioItemTitle = switch (lessonType == null ? "" : lessonType) {
+        case "listening" -> "听力精听";
+        case "shadowing" -> "跟读评分";
+        case "dialog" -> "对话实战";
+        default -> "学场景";
+    };
+    items.add(new TodayItem("scenario", scenarioItemTitle, 1, scenarioDone ? 1 : 0, scenarioDone,
+        scenarioId, scenarioTitle, lessonType, lessonId));
     items.add(new TodayItem("dialog", "开口对话", 1, dialogsToday, dialogsToday >= 1,
-        null, null));
+        null, null, null, null));
 
     return new TodayView(today, profile.getStreakDays(), profile.getCefrLevel(), track,
         dueCount, todayMinutes, items);
@@ -158,7 +189,8 @@ public class StudyService {
   }
 
   public record TodayItem(String kind, String title, int target, int doneCount, boolean done,
-                          Long scenarioId, String scenarioTitleZh) {
+                          Long scenarioId, String scenarioTitleZh, String lessonType,
+                          Long lessonId) {
   }
 
   public record TodayView(String date, Integer streakDays, String cefrLevel, String goalTrack,

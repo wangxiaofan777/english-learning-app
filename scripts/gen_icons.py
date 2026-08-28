@@ -69,6 +69,17 @@ def icon_vocab(color):
             b[y][x] = CLEAR
     return b
 
+def icon_course(color):
+    b = new_canvas()
+    # 学士帽：菱形帽面 + 帽底 + 流苏
+    for y in range(SIZE):
+        for x in range(SIZE):
+            if abs(x - 40) + abs(y - 24) <= 22:
+                b[y][x] = color
+    rounded_rect(b, 22, 42, 58, 54, 5, color)
+    fill_circle(b, 59, 36, 4, color)
+    return b
+
 def icon_mine(color):
     b = new_canvas()
     fill_circle(b, 40, 28, 13, color)
@@ -92,7 +103,7 @@ def write_png(path, buf):
 OUT = os.path.join(os.path.dirname(__file__), "..", "app", "src", "static")
 os.makedirs(OUT, exist_ok=True)
 icons = {
-    "tab-today": icon_today, "tab-speak": icon_speak,
+    "tab-today": icon_today, "tab-course": icon_course, "tab-speak": icon_speak,
     "tab-vocab": icon_vocab, "tab-mine": icon_mine,
 }
 for name, fn in icons.items():

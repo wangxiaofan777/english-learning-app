@@ -137,10 +137,11 @@ async function next() {
     playCurrent();
     return;
   }
-  // 完成：计入学习时长（~4 句折 1 分钟，至少 1 分钟）
+  // 完成：计入学习时长 + 标记课时完成
   const minutes = Math.max(1, Math.round(lines.value.length / 4));
   try {
     await api.recordPractice("listening", minutes, lines.value.length);
+    await api.completeLesson("listening", scenarioId.value, null);
   } catch (e) {
     // 计时失败不打断完成页
   }

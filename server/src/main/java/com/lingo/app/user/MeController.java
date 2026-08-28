@@ -24,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class MeController {
 
   private static final Set<String> TRACKS = Set.of("daily", "work", "travel", "exam");
+  private static final Set<String> AGE_BANDS = Set.of("child", "teen", "adult", "senior");
 
   private final UserMapper userMapper;
   private final UserProfileMapper profileMapper;
+  private final com.lingo.app.course.CourseService courseService;
 
   @GetMapping("/me")
   public ApiResponse<AuthService.ProfileView> me() {
@@ -45,13 +47,21 @@ public class MeController {
     if (!TRACKS.contains(req.getGoalTrack())) {
       throw ApiException.badRequest("学习目标不合法");
     }
+    if (req.getAgeBand() != null && !AGE_BANDS.contains(req.getAgeBand())) {
+      throw ApiException.badRequest("年龄段不合法");
+    }
     Long userId = UserContext.get();
     UserProfileEntity profile = profileMapper.selectOne(
         new LambdaQueryWrapper<UserProfileEntity>().eq(UserProfileEntity::getUserId, userId));
+    profile.setAgeBand(req.getAgeBand());
     profile.setGoalTrack(req.getGoalTrack());
     profile.setDailyMinutes(req.getDailyMinutes());
     profile.setOnboardingStep(profile.getCefrLevel() == null ? "placement" : "done");
     profileMapper.updateById(profile);
+
+    // 按登记信息自动制定课程（已有进行中课程则保持不变）
+    courseService.autoEnroll(userId, profile.getGoalTrack(), profile.getAgeBand(),
+        profile.getCefrLevel());
 
     UserEntity user = userMapper.selectById(userId);
     return ApiResponse.ok(new OnboardingResponse(profile.getOnboardingStep(),
@@ -60,6 +70,7 @@ public class MeController {
 
   @Data
   public static class OnboardingReq {
+    private String ageBand;
     @NotBlank(message = "请选择学习目标")
     private String goalTrack;
     @Min(value = 5, message = "每日时长最少 5 分钟")

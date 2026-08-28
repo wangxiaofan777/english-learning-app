@@ -224,6 +224,11 @@ async function next() {
   const minutes = Math.max(1, Math.round(lines.value.length / 4));
   try {
     await api.recordPractice("shadowing", minutes, lines.value.length);
+    await api.completeLesson(
+      "shadowing",
+      scenarioId.value,
+      scores.value.length ? Math.round(scores.value.reduce((a, b) => a + b, 0) / scores.value.length) : undefined
+    );
   } catch (e) {
     // 计时失败不打断完成页
   }

@@ -24,7 +24,7 @@
         @tap="onItemTap(item)"
       >
         <view class="plan-icon" :class="{ done: item.done }">
-          <text>{{ iconFor(item.kind) }}</text>
+          <text>{{ iconFor(item) }}</text>
         </view>
         <view class="plan-body">
           <text class="plan-title" :class="{ strike: item.done }">{{ item.title }}</text>
@@ -59,8 +59,13 @@ const today = ref<TodayView | null>(null);
 const greeting = computed(() => greetingByHour());
 const nickname = computed(() => user.profile?.nickname || "同学");
 
-const iconFor = (kind: string) =>
-  kind === "review" ? "📖" : kind === "scenario" ? "🎬" : "🎙️";
+const iconFor = (item: TodayItem) => {
+  if (item.kind === "review") return "📖";
+  if (item.kind === "dialog") return "🎙️";
+  if (item.lessonType === "listening") return "🎧";
+  if (item.lessonType === "shadowing") return "🗣️";
+  return "🎬";
+};
 
 onShow(async () => {
   if (!ensureAuth()) return;
@@ -71,7 +76,14 @@ function onItemTap(item: TodayItem) {
   if (item.kind === "review") {
     goReview();
   } else if (item.kind === "scenario" && item.scenarioId) {
-    startChat(item.scenarioId);
+    // 按当前课时类型路由：对话实战 / 听力精听 / 跟读评分
+    if (item.lessonType === "listening") {
+      uni.navigateTo({ url: `/pages/listen/listen?id=${item.scenarioId}` });
+    } else if (item.lessonType === "shadowing") {
+      uni.navigateTo({ url: `/pages/practice/shadow?id=${item.scenarioId}` });
+    } else {
+      startChat(item.scenarioId);
+    }
   } else if (item.kind === "dialog") {
     uni.switchTab({ url: "/pages/speak/hall" });
   }

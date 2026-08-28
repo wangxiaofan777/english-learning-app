@@ -129,3 +129,49 @@ CREATE TABLE IF NOT EXISTS t_study_log (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_study_user_date ON t_study_log (user_id, study_date);
+
+-- ---------- 课程体系 ----------
+CREATE TABLE IF NOT EXISTS t_course (
+  id          BIGINT PRIMARY KEY,
+  track       VARCHAR(32) NOT NULL,
+  age_band    VARCHAR(16),
+  cefr        VARCHAR(8),
+  title_zh    VARCHAR(128),
+  title_en    VARCHAR(128),
+  description TEXT,
+  sort_no     INT DEFAULT 0,
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS t_course_lesson (
+  id          BIGINT PRIMARY KEY,
+  course_id   BIGINT NOT NULL,
+  idx         INT,
+  lesson_type VARCHAR(16),
+  scenario_id BIGINT,
+  title_zh    VARCHAR(128),
+  minutes     INT DEFAULT 10
+);
+CREATE INDEX IF NOT EXISTS idx_lesson_course ON t_course_lesson (course_id);
+
+CREATE TABLE IF NOT EXISTS t_user_course (
+  id         BIGINT PRIMARY KEY,
+  user_id    BIGINT NOT NULL,
+  course_id  BIGINT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_user_course ON t_user_course (user_id, course_id);
+
+CREATE TABLE IF NOT EXISTS t_lesson_progress (
+  id           BIGINT PRIMARY KEY,
+  user_id      BIGINT NOT NULL,
+  lesson_id    BIGINT NOT NULL,
+  course_id    BIGINT NOT NULL,
+  status       VARCHAR(16) DEFAULT 'done',
+  score        INT,
+  completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_lesson_progress ON t_lesson_progress (user_id, lesson_id);
+
+-- 历史库平滑迁移
+ALTER TABLE t_user_profile ADD COLUMN IF NOT EXISTS age_band VARCHAR(16);

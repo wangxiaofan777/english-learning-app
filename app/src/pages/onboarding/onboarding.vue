@@ -6,7 +6,24 @@
     </view>
 
     <view class="card">
-      <text class="step-label">1 · 你最想提升什么？</text>
+      <text class="step-label">1 · 你属于哪个年龄段？</text>
+      <view class="goal-grid">
+        <view
+          v-for="a in ageBands"
+          :key="a.band"
+          class="goal-item"
+          :class="{ active: ageBand === a.band }"
+          @tap="ageBand = a.band"
+        >
+          <text class="goal-emoji">{{ a.emoji }}</text>
+          <text class="goal-name">{{ a.name }}</text>
+          <text class="goal-desc">{{ a.desc }}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="step-label">2 · 你最想提升什么？</text>
       <view class="goal-grid">
         <view
           v-for="g in goals"
@@ -23,7 +40,7 @@
     </view>
 
     <view class="card">
-      <text class="step-label">2 · 每天能投入多久？</text>
+      <text class="step-label">3 · 每天能投入多久？</text>
       <view class="minutes-row">
         <view
           v-for="m in minutesOptions"
@@ -38,7 +55,7 @@
     </view>
 
     <view class="footer">
-      <button class="btn-primary" :class="{ disabled: !goalTrack || submitting }" @tap="submit">
+      <button class="btn-primary" :class="{ disabled: !goalTrack || !ageBand || submitting }" @tap="submit">
         {{ submitting ? "生成中…" : "下一步 · 快速测评定级" }}
       </button>
     </view>
@@ -56,17 +73,24 @@ const goals = [
   { track: "travel", emoji: "✈️", name: "出国旅行", desc: "值机、酒店、求助" },
   { track: "exam", emoji: "📝", name: "考试备考", desc: "四六级、雅思词汇" },
 ];
+const ageBands = [
+  { band: "child", emoji: "🧒", name: "少儿", desc: "6-12 岁 · 启蒙进阶" },
+  { band: "teen", emoji: "🧑‍🎓", name: "青少年", desc: "13-17 岁 · 校园提升" },
+  { band: "adult", emoji: "💼", name: "成人", desc: "18-45 岁 · 职场实用" },
+  { band: "senior", emoji: "🌅", name: "银发族", desc: "45+ · 兴趣养生" },
+];
 const minutesOptions = [5, 15, 30];
 
+const ageBand = ref("");
 const goalTrack = ref("");
 const dailyMinutes = ref(15);
 const submitting = ref(false);
 
 async function submit() {
-  if (!goalTrack.value || submitting.value) return;
+  if (!ageBand.value || !goalTrack.value || submitting.value) return;
   submitting.value = true;
   try {
-    const result = await api.onboarding(goalTrack.value, dailyMinutes.value);
+    const result = await api.onboarding(ageBand.value, goalTrack.value, dailyMinutes.value);
     updateProfile(result.profile);
     if (result.nextStep === "placement") {
       uni.redirectTo({ url: "/pages/placement/placement" });
@@ -86,7 +110,7 @@ async function submit() {
 }
 
 .ob-header {
-  padding: 0 40rpx 32rpx;
+  padding: 120rpx 40rpx 32rpx;
   display: flex;
   flex-direction: column;
   gap: 12rpx;

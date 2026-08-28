@@ -4,6 +4,7 @@ export interface Profile {
   userId: string;
   nickname: string;
   isGuest: boolean;
+  ageBand: string | null;
   goalTrack: string;
   dailyMinutes: number;
   cefrLevel: string | null;
@@ -139,6 +140,8 @@ export interface TodayItem {
   done: boolean;
   scenarioId: string | null;
   scenarioTitleZh: string | null;
+  lessonType: "dialog" | "listening" | "shadowing" | null;
+  lessonId: string | null;
 }
 
 export interface TodayView {
@@ -157,4 +160,43 @@ export interface StatsView {
   wordsTotal: number;
   wordsLearning: number;
   week: { date: string; minutes: number }[];
+}
+
+export interface CourseCard {
+  id: string;
+  track: string;
+  ageBand: string | null;
+  cefr: string | null;
+  titleZh: string;
+  titleEn: string;
+  description: string;
+  lessonCount: number;
+  doneCount: number;
+  enrolled: boolean;
+}
+
+export type LessonStatus = "done" | "current" | "locked";
+
+export interface LessonView {
+  id: string;
+  idx: number;
+  lessonType: "dialog" | "listening" | "shadowing";
+  scenarioId: string;
+  titleZh: string;
+  minutes: number;
+  status: LessonStatus;
+}
+
+export interface CourseDetail {
+  id: string;
+  track: string;
+  ageBand: string | null;
+  cefr: string | null;
+  titleZh: string;
+  titleEn: string;
+  description: string;
+  lessons: LessonView[];
+  currentLessonId: string | null;
+  doneCount: number;
+  totalCount: number;
 }

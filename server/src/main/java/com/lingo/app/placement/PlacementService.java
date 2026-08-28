@@ -21,6 +21,7 @@ public class PlacementService {
 
   private final UserProfileMapper profileMapper;
   private final ObjectMapper objectMapper;
+  private final com.lingo.app.course.CourseService courseService;
   private List<PlacementQuestion> questions = List.of();
 
   @PostConstruct
@@ -62,6 +63,9 @@ public class PlacementService {
     profile.setOnboardingStep("done");
     profile.setWeakTags(toJson(weakTags.stream().distinct().limit(4).toList()));
     profileMapper.updateById(profile);
+
+    // 定级完成：按「年龄段 + 目标 + 等级」制定课程
+    courseService.autoEnroll(userId, profile.getGoalTrack(), profile.getAgeBand(), cefr);
 
     String comment = "口语自述暂未评估，可先按「" + cefr + "」开始，系统会随练习自动校准。";
     return new PlacementResult(score, questions.size(), cefr, weakTags, comment);

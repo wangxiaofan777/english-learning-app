@@ -45,6 +45,18 @@ ID 均以字符串形式返回（防 JS 精度丢失）。
 | GET | `/vocab/queue?limit=15` | 到期复习卡 `{cards, dueCount}` |
 | POST | `/vocab/{id}/grade` | body `{rating: 1忘了/2困难/3良好/4轻松}` → FSRS 排期 `{nextDueAt}` |
 
+## 课程体系
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/courses` | 全部课程 `{id, track, ageBand, cefr, titleZh, description, lessonCount, doneCount, enrolled}` |
+| GET | `/courses/current` | 当前课程详情 + 课时清单（status: done/current/locked）+ currentLessonId；未报名返回 null |
+| GET | `/courses/{id}` | 指定课程详情 |
+| POST | `/courses/{id}/enroll` | 报名/切换课程（幂等） |
+| POST | `/courses/complete` | 完课上报，body `{lessonType, scenarioId, score?}`，幂等；返回 `{newlyDone, doneCount, totalCount, courseFinished}` |
+
+课程制定规则：Onboarding 提交与测评定级时自动匹配「目标轨道 + 年龄段」的课程并报名（已有进行中课程则不打扰）。
+
 ## 学习计划与统计
 
 | 方法 | 路径 | 说明 |

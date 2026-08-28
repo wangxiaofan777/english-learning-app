@@ -5,6 +5,10 @@
       "style": { "navigationBarTitleText": "今天" }
     },
     {
+      "path": "pages/course/index",
+      "style": { "navigationBarTitleText": "课程" }
+    },
+    {
       "path": "pages/speak/hall",
       "style": { "navigationBarTitleText": "练口语" }
     },
@@ -62,6 +66,12 @@
         "text": "今天",
         "iconPath": "static/tab-today.png",
         "selectedIconPath": "static/tab-today-active.png"
+      },
+      {
+        "pagePath": "pages/course/index",
+        "text": "课程",
+        "iconPath": "static/tab-course.png",
+        "selectedIconPath": "static/tab-course-active.png"
       },
       {
         "pagePath": "pages/speak/hall",

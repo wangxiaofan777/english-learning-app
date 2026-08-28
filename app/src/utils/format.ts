@@ -10,6 +10,25 @@ export function trackLabel(track: string | null | undefined): string {
   return map[track || ""] || "综合练习";
 }
 
+export function ageBandLabel(band: string | null | undefined): string {
+  const map: Record<string, string> = {
+    child: "少儿",
+    teen: "青少年",
+    adult: "成人",
+    senior: "银发族",
+  };
+  return map[band || ""] || "成人";
+}
+
+export function lessonTypeLabel(type: string | null | undefined): string {
+  const map: Record<string, string> = {
+    dialog: "对话实战",
+    listening: "听力精听",
+    shadowing: "跟读评分",
+  };
+  return map[type || ""] || "场景练习";
+}
+
 export function vocabStateLabel(state: string | null | undefined): string {
   const map: Record<string, string> = {
     new: "新词",
