@@ -66,10 +66,15 @@ child→小学(KET/PET)；teen 按等级→初中(中考)/高中(高考)；成�
 | GET | `/today` | 每日三件事 + 打卡：`{date, streakDays, cefrLevel, dueCount, todayMinutes, items[3], xp, dailySentence[en,zh]}`；每日首次调用自动打卡 +5 XP |
 | GET | `/stats` | `{totalMinutes, totalDialogs, wordsTotal, wordsLearning, week[7], weekXp, totalXp}` |
 | GET | `/achievements` | 成就徽章墙（实时计算）：`[{code, name, description, icon, earned}]` |
-| POST | `/study/record` | 端上练习计时，body `{kind: listening/shadowing/quiz/..., minutes?, count?}`；XP 按行为类型由服务端结算（对话+30/精听+20/跟读+25/复习每词+2/速测每题+3/打卡+5） |
+| GET | `/study/calendar?month=YYYY-MM` | 打卡月历：`{month, days:[{date, minutes, xp}], studiedCount, streakDays}` |
+| POST | `/study/record` | 端上练习计时，body `{kind, minutes?, count?}`；XP 按行为类型由服务端结算（对话+30/精听+20/跟读+25/Boss+40/复习每词+2/速测与拼写每题+3/打卡+5） |
 
 ## 管理（X-Admin-Token 鉴权）
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | POST | `/admin/scenarios/generate` | body `{track, topic, cefr}`；配置 LLM 后按流水线生成入库，否则模板兜底 |
+| GET | `/admin/content/status` | 内容分层统计 `{total, seed, ai, template}` |
+| GET | `/admin/content/scenarios?source=template&page=` | 按来源列出场景（内容运营台用） |
+| POST | `/admin/content/rewrite` | body `{scenarioId}`；LLM 重写单篇正文（id/标题不变，课时引用不断链） |
+| POST | `/admin/content/rewrite-batch` | body `{limit}`；批量重写，返回 `{rewritten, remaining}` |

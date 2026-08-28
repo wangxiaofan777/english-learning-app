@@ -1,5 +1,7 @@
 package com.lingo.app.scenario;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lingo.app.common.ApiException;
@@ -46,17 +48,121 @@ public class GenerationService {
   private final ObjectMapper objectMapper;
 
   public ScenarioCard generate(String track, String topic, String cefr) {
-    JsonNode node;
+    JsonNode node = compose(track, topic, cefr);
+    return persist(node, track, topic, cefr, "ai");
+  }
+
+  /**
+   * 内容真实化流水线：把模板场景的正文用 LLM 重写为真实内容。
+   * 场景 id/标题保持不变，课程课时引用不断链。
+   */
+  public ScenarioCard rewrite(Long scenarioId) {
+    if (!props.llmEnabled()) {
+      throw ApiException.badRequest("请先配置 LLM_API_KEY，才能把模板内容重写为真实内容");
+    }
+    ScenarioEntity s = scenarioMapper.selectById(scenarioId);
+    if (s == null) {
+      throw ApiException.notFound("场景不存在");
+    }
+    JsonNode node = compose(s.getTrack(), s.getTopic(), s.getCefr());
+    JsonNode lines = node.path("lines");
+    JsonNode vocab = node.path("vocab");
+    if (!lines.isArray() || lines.size() < 4 || !vocab.isArray() || vocab.isEmpty()) {
+      throw ApiException.badRequest("AI 生成内容不完整，请重试");
+    }
+    applyContent(s, lines, vocab, node);
+    return new ScenarioCard(s.getId(), s.getTitleZh(), s.getTitleEn(), lines.size(), vocab.size());
+  }
+
+  /** 批量重写：每次最多 limit 条模板场景，返回本次处理数与剩余量 */
+  public java.util.Map<String, Object> rewriteBatch(int limit) {
+    List<ScenarioEntity> templates = scenarioMapper.selectList(
+        new LambdaQueryWrapper<ScenarioEntity>()
+            .eq(ScenarioEntity::getSource, "template")
+            .orderByAsc(ScenarioEntity::getId)
+            .last("limit " + Math.max(1, Math.min(limit, 50))));
+    int rewritten = 0;
+    for (ScenarioEntity s : templates) {
+      try {
+        rewrite(s.getId());
+        rewritten++;
+      } catch (Exception e) {
+        log.warn("rewrite scenario {} failed: {}", s.getId(), e.getMessage());
+      }
+    }
+    long remaining = scenarioMapper.selectCount(new LambdaQueryWrapper<ScenarioEntity>()
+        .eq(ScenarioEntity::getSource, "template"));
+    java.util.Map<String, Object> result = new java.util.LinkedHashMap<>();
+    result.put("rewritten", rewritten);
+    result.put("remaining", remaining);
+    return result;
+  }
+
+  public java.util.Map<String, Object> contentStatus() {
+    java.util.Map<String, Object> result = new java.util.LinkedHashMap<>();
+    result.put("total", scenarioMapper.selectCount(null));
+    result.put("seed", scenarioMapper.selectCount(
+        new LambdaQueryWrapper<ScenarioEntity>().eq(ScenarioEntity::getSource, "seed")));
+    result.put("ai", scenarioMapper.selectCount(
+        new LambdaQueryWrapper<ScenarioEntity>().eq(ScenarioEntity::getSource, "ai")));
+    result.put("template", scenarioMapper.selectCount(
+        new LambdaQueryWrapper<ScenarioEntity>().eq(ScenarioEntity::getSource, "template")));
+    return result;
+  }
+
+  public List<ScenarioEntity> listBySource(String source, long page, long size) {
+    return scenarioMapper.selectPage(
+        Page.of(page, size),
+        new LambdaQueryWrapper<ScenarioEntity>()
+            .eq(ScenarioEntity::getSource, source)
+            .orderByAsc(ScenarioEntity::getId))
+        .getRecords();
+  }
+
+  /** 用新内容替换场景正文（角色设定/台词/生词），标题与 id 不动 */
+  private void applyContent(ScenarioEntity s, JsonNode lines, JsonNode vocab, JsonNode node) {
+    lineMapper.delete(new LambdaQueryWrapper<ScenarioLineEntity>()
+        .eq(ScenarioLineEntity::getScenarioId, s.getId()));
+    vocabMapper.delete(new LambdaQueryWrapper<ScenarioVocabEntity>()
+        .eq(ScenarioVocabEntity::getScenarioId, s.getId()));
+    int idx = 0;
+    for (JsonNode l : lines) {
+      ScenarioLineEntity line = new ScenarioLineEntity();
+      line.setScenarioId(s.getId());
+      line.setIdx(idx++);
+      line.setSpeaker("user".equalsIgnoreCase(l.path("speaker").asText("ai")) ? "user" : "ai");
+      line.setEn(l.path("en").asText());
+      line.setZh(l.path("zh").asText());
+      lineMapper.insert(line);
+    }
+    for (JsonNode v : vocab) {
+      ScenarioVocabEntity sv = new ScenarioVocabEntity();
+      sv.setScenarioId(s.getId());
+      sv.setWord(v.path("word").asText());
+      sv.setPhonetic(v.path("phonetic").asText(""));
+      sv.setMeaningZh(v.path("meaningZh").asText(""));
+      sv.setExampleEn(v.path("exampleEn").asText(""));
+      sv.setExampleZh(v.path("exampleZh").asText(""));
+      vocabMapper.insert(sv);
+    }
+    s.setRoleSetting(node.path("roleSetting").asText(s.getRoleSetting()));
+    s.setIntroZh(node.path("introZh").asText(s.getIntroZh()));
+    if (!node.path("titleEn").asText("").isBlank()) {
+      s.setTitleEn(node.path("titleEn").asText());
+    }
+    s.setSource("ai");
+    scenarioMapper.updateById(s);
+  }
+
+  private JsonNode compose(String track, String topic, String cefr) {
     if (props.llmEnabled()) {
       String user = "学习轨道：%s\n主题：%s\nCEFR 等级：%s".formatted(track, topic, cefr);
       String raw = llmClient.complete(List.of(
           Map.of("role", "system", "content", SYSTEM_PROMPT),
           Map.of("role", "user", "content", user)), 0.8);
-      node = parseJson(raw);
-    } else {
-      node = mockGeneration(track, topic, cefr);
+      return parseJson(raw);
     }
-    return persist(node, track, topic, cefr, "ai");
+    return mockGeneration(track, topic, cefr);
   }
 
   /**

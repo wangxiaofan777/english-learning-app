@@ -24,12 +24,14 @@ import org.springframework.stereotype.Service;
 public class StudyService {
 
   private static final Set<String> KINDS =
-      Set.of("review", "scenario", "dialog", "listening", "shadowing", "quiz", "daily");
+      Set.of("review", "scenario", "dialog", "listening", "shadowing", "quiz", "daily", "boss",
+          "spell");
 
   /** 每种练习的经验值规则：按次给固定值，或按数量给（×count） */
   private static final Map<String, Integer> XP_FIXED =
-      Map.of("dialog", 30, "listening", 20, "shadowing", 25, "scenario", 5, "daily", 5);
-  private static final Map<String, Integer> XP_PER_COUNT = Map.of("review", 2, "quiz", 3);
+      Map.of("dialog", 30, "listening", 20, "shadowing", 25, "scenario", 5, "daily", 5, "boss", 40);
+  private static final Map<String, Integer> XP_PER_COUNT =
+      Map.of("review", 2, "quiz", 3, "spell", 3);
 
   /** 每日一句（按日期轮换） */
   private static final List<String[]> DAILY_SENTENCES = List.of(
@@ -264,6 +266,33 @@ public class StudyService {
   }
 
   public record DayMinutes(String date, int minutes) {
+  }
+
+  /** 打卡月历：某个月有学习记录的日子与时长/经验 */
+  public CalendarView calendar(Long userId, String month) {
+    String target = month == null || month.isBlank() ? LocalDate.now().toString().substring(0, 7)
+        : month;
+    List<StudyLogEntity> rows = studyLogMapper.selectList(
+        new LambdaQueryWrapper<StudyLogEntity>()
+            .eq(StudyLogEntity::getUserId, userId)
+            .likeRight(StudyLogEntity::getStudyDate, target));
+    Map<String, List<StudyLogEntity>> byDate = rows.stream()
+        .collect(java.util.stream.Collectors.groupingBy(StudyLogEntity::getStudyDate));
+    List<DayStat> days = byDate.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .map(e -> new DayStat(e.getKey(),
+            e.getValue().stream().mapToInt(r -> r.getMinutes() == null ? 0 : r.getMinutes()).sum(),
+            e.getValue().stream().mapToInt(r -> r.getXp() == null ? 0 : r.getXp()).sum()))
+        .toList();
+    UserProfileEntity profile = profileOf(userId);
+    return new CalendarView(target, days, days.size(),
+        profile.getStreakDays() == null ? 0 : profile.getStreakDays());
+  }
+
+  public record DayStat(String date, int minutes, int xp) {
+  }
+
+  public record CalendarView(String month, List<DayStat> days, int studiedCount, int streakDays) {
   }
 
   public record StatsView(int totalMinutes, long totalDialogs, long wordsTotal,

@@ -45,6 +45,26 @@
       "style": { "navigationBarTitleText": "词汇速测" }
     },
     {
+      "path": "pages/vocab/spell",
+      "style": { "navigationBarTitleText": "拼写挑战" }
+    },
+    {
+      "path": "pages/challenge/boss",
+      "style": { "navigationBarTitleText": "Boss 挑战赛" }
+    },
+    {
+      "path": "pages/mine/calendar",
+      "style": { "navigationBarTitleText": "打卡月历" }
+    },
+    {
+      "path": "pages/mine/poster",
+      "style": { "navigationBarTitleText": "分享海报" }
+    },
+    {
+      "path": "pages/admin/content",
+      "style": { "navigationBarTitleText": "内容运营台" }
+    },
+    {
       "path": "pages/listen/listen",
       "style": { "navigationBarTitleText": "听力精听" }
     },

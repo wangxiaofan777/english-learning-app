@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Set;
@@ -21,7 +22,8 @@ import java.util.Set;
 public class StudyController {
 
   private static final Set<String> KINDS =
-      Set.of("review", "scenario", "dialog", "listening", "shadowing", "quiz", "daily");
+      Set.of("review", "scenario", "dialog", "listening", "shadowing", "quiz", "daily", "boss",
+          "spell");
 
   private final StudyService studyService;
   private final AchievementService achievementService;
@@ -34,6 +36,12 @@ public class StudyController {
   @GetMapping("/stats")
   public ApiResponse<StudyService.StatsView> stats() {
     return ApiResponse.ok(studyService.stats(UserContext.get()));
+  }
+
+  @GetMapping("/study/calendar")
+  public ApiResponse<StudyService.CalendarView> calendar(
+      @RequestParam(required = false) String month) {
+    return ApiResponse.ok(studyService.calendar(UserContext.get(), month));
   }
 
   @GetMapping("/achievements")

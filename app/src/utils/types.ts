@@ -143,7 +143,7 @@ export interface TodayItem {
   done: boolean;
   scenarioId: string | null;
   scenarioTitleZh: string | null;
-  lessonType: "dialog" | "listening" | "shadowing" | null;
+  lessonType: "dialog" | "listening" | "shadowing" | "review" | "boss" | null;
   lessonId: string | null;
 }
 
@@ -165,6 +165,35 @@ export interface Badge {
   description: string;
   icon: string;
   earned: boolean;
+}
+
+export interface DayStat {
+  date: string;
+  minutes: number;
+  xp: number;
+}
+
+export interface CalendarView {
+  month: string;
+  days: DayStat[];
+  studiedCount: number;
+  streakDays: number;
+}
+
+export interface AdminStatus {
+  total: number;
+  seed: number;
+  ai: number;
+  template: number;
+}
+
+export interface AdminScenarioRow {
+  id: string;
+  titleZh: string;
+  titleEn: string;
+  track: string;
+  cefr: string;
+  source: string;
 }
 
 export interface StatsView {
@@ -197,7 +226,7 @@ export type LessonStatus = "done" | "current" | "locked";
 export interface LessonView {
   id: string;
   idx: number;
-  lessonType: "dialog" | "listening" | "shadowing" | "review";
+  lessonType: "dialog" | "listening" | "shadowing" | "review" | "boss";
   scenarioId: string | null;
   titleZh: string;
   minutes: number;

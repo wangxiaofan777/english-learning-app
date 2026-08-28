@@ -1,5 +1,8 @@
 import type {
+  AdminScenarioRow,
+  AdminStatus,
   Badge,
+  CalendarView,
   ConversationDetail,
   CourseCard,
   CourseDetail,
@@ -80,6 +83,37 @@ function request<T>(method: "GET" | "POST", url: string, body?: unknown): Promis
   });
 }
 
+function adminRequest<T>(method: "GET" | "POST", url: string, body?: unknown,
+                         adminToken?: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const header: Record<string, string> = { "Content-Type": "application/json" };
+    if (adminToken) {
+      header["X-Admin-Token"] = adminToken;
+    }
+    uni.request({
+      url: BASE_URL + url,
+      method,
+      data: body as AnyObject | undefined,
+      header,
+      timeout: 120000,
+      success: (res) => {
+        const payload = res.data as ApiResponse<T>;
+        if (payload && payload.code === 0) {
+          resolve(payload.data);
+        } else {
+          const message = payload ? payload.message : `请求失败(${res.statusCode})`;
+          uni.showToast({ title: message, icon: "none" });
+          reject(new Error(message));
+        }
+      },
+      fail: (err) => {
+        uni.showToast({ title: "网络异常", icon: "none" });
+        reject(err);
+      },
+    });
+  });
+}
+
 export const api = {
   guestLogin: (nickname?: string) =>
     request<LoginResult>("POST", "/api/v1/auth/guest", { nickname }),
@@ -122,6 +156,28 @@ export const api = {
   stats: () => request<StatsView>("GET", "/api/v1/stats"),
   achievements: () => request<Badge[]>("GET", "/api/v1/achievements"),
   freeTalk: () => request<ScenarioCard>("GET", "/api/v1/scenarios/free-talk"),
+  calendar: (month?: string) =>
+    request<CalendarView>("GET", `/api/v1/study/calendar${month ? `?month=${month}` : ""}`),
+  // 内容运营台（admin token 鉴权，与用户体系隔离）
+  adminStatus: (adminToken: string) =>
+    adminRequest<AdminStatus>("GET", "/api/v1/admin/content/status", undefined, adminToken),
+  adminScenarios: (adminToken: string, source: string, page = 1) =>
+    adminRequest<AdminScenarioRow[]>(
+      "GET",
+      `/api/v1/admin/content/scenarios?source=${source}&page=${page}&size=20`,
+      undefined,
+      adminToken
+    ),
+  adminRewrite: (adminToken: string, scenarioId: string) =>
+    adminRequest<{ id: string; titleZh: string }>("POST", "/api/v1/admin/content/rewrite",
+      { scenarioId }, adminToken),
+  adminRewriteBatch: (adminToken: string, limit = 10) =>
+    adminRequest<{ rewritten: number; remaining: number }>(
+      "POST",
+      "/api/v1/admin/content/rewrite-batch",
+      { limit },
+      adminToken
+    ),
   recordPractice: (kind: string, minutes = 1, count = 1) =>
     request<void>("POST", "/api/v1/study/record", { kind, minutes, count }),
   courses: () => request<CourseCard[]>("GET", "/api/v1/courses"),

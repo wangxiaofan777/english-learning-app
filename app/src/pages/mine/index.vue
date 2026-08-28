@@ -45,6 +45,11 @@
           <text class="chart-label">{{ d.date.slice(8) }}日</text>
         </view>
       </view>
+
+      <view class="tool-row">
+        <button class="btn-ghost tool-btn" @tap="goCalendar">📅 打卡月历</button>
+        <button class="btn-ghost tool-btn" @tap="goPoster">🖼️ 成绩海报</button>
+      </view>
     </view>
 
     <view class="card">
@@ -111,6 +116,14 @@ onShow(async () => {
 function barHeight(minutes: number): string {
   const ratio = Math.min(1, minutes / maxMinutes.value);
   return `${Math.max(6, Math.round(ratio * 120))}rpx`;
+}
+
+function goCalendar() {
+  uni.navigateTo({ url: "/pages/mine/calendar" });
+}
+
+function goPoster() {
+  uni.navigateTo({ url: "/pages/mine/poster" });
 }
 
 function logout() {
@@ -301,6 +314,18 @@ function logout() {
 .chart-label {
   font-size: 20rpx;
   color: #9ca3af;
+}
+
+.tool-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 28rpx;
+}
+
+.tool-btn {
+  flex: 1;
+  padding: 16rpx 0;
+  font-size: 26rpx;
 }
 
 .about-row {

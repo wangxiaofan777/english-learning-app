@@ -19,6 +19,14 @@
       <text class="quiz-go">GO →</text>
     </view>
 
+    <view class="card quiz-entry spell-entry" @tap="goSpell">
+      <view class="due-left">
+        <text class="due-title">🔤 拼写挑战</text>
+        <text class="due-sub">听发音拼单词，测测真的会写吗</text>
+      </view>
+      <text class="quiz-go">GO →</text>
+    </view>
+
     <view v-if="entries.length === 0" class="card empty">
       <text class="empty-emoji">🌱</text>
       <text class="empty-title">词库还是空的</text>
@@ -79,6 +87,10 @@ function goQuiz() {
   uni.navigateTo({ url: "/pages/vocab/quiz" });
 }
 
+function goSpell() {
+  uni.navigateTo({ url: "/pages/vocab/spell" });
+}
+
 function pronounce(word: string) {
   speak(word);
 }
@@ -132,6 +144,10 @@ function shortDate(iso: string): string {
 
 .quiz-entry {
   border: 2rpx dashed #16a34a;
+}
+
+.spell-entry {
+  border-color: #0ea5e9;
 }
 
 .quiz-go {

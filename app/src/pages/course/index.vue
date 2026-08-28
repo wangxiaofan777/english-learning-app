@@ -165,7 +165,7 @@ function openLesson(lesson: LessonView) {
 }
 
 async function routeToLesson(
-  lessonType: "dialog" | "listening" | "shadowing" | "review",
+  lessonType: "dialog" | "listening" | "shadowing" | "review" | "boss",
   scenarioId: string | null
 ) {
   if (lessonType === "listening") {
@@ -174,6 +174,8 @@ async function routeToLesson(
     uni.navigateTo({ url: `/pages/practice/shadow?id=${scenarioId}` });
   } else if (lessonType === "review") {
     uni.navigateTo({ url: "/pages/vocab/review" });
+  } else if (lessonType === "boss") {
+    uni.navigateTo({ url: `/pages/challenge/boss?id=${scenarioId}` });
   } else {
     uni.showLoading({ title: "准备场景…" });
     try {

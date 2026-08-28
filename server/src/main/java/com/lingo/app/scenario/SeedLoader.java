@@ -44,8 +44,10 @@ public class SeedLoader implements CommandLineRunner {
     } else {
       log.info("scenarios already seeded, skip");
     }
-    // 课程目录（6 方向 × 3 周期 = 18 门）；数量不足视为旧版种子，重建目录
-    if (courseMapper.selectCount(null) < 18) {
+    // 课程目录（6 方向 × 3 周期 = 18 门）；数量不足或缺少 Boss 课时视为旧版种子，重建目录
+    boolean hasBoss = courseLessonMapper.selectCount(new LambdaQueryWrapper<CourseLessonEntity>()
+        .eq(CourseLessonEntity::getLessonType, "boss")) > 0;
+    if (courseMapper.selectCount(null) < 18 || !hasBoss) {
       reseedCourseCatalog();
     } else {
       log.info("course catalog already seeded, skip");
@@ -147,14 +149,17 @@ public class SeedLoader implements CommandLineRunner {
         topicScenarios.add(existing);
       }
 
-      // 周期计划：3 个月=12 话题×3 课时；6 个月=24×3；12 个月=24×4（含单元复习课）
-      int[][] plans = {{3, 12, 3}, {6, 24, 3}, {12, 24, 4}};
+      // 周期计划：3 个月=12 话题；6 个月=24 话题；12 个月=24 话题+单元复习课；每话题末尾都是 Boss 挑战赛
+      int[][] plans = {{3, 12}, {6, 24}, {12, 24}};
       for (int[] plan : plans) {
         int months = plan[0];
         int topicCount = plan[1];
         boolean withReview = months == 12;
         List<ScenarioEntity> picked = topicScenarios.subList(0, topicCount);
-        int totalLessons = picked.size() * (withReview ? 4 : 3);
+        String[] cycle = withReview
+            ? new String[]{"dialog", "listening", "shadowing", "review", "boss"}
+            : new String[]{"dialog", "listening", "shadowing", "boss"};
+        int totalLessons = picked.size() * cycle.length;
         int weeks = months * 4;
         int lessonsPerWeek = Math.round((float) totalLessons / weeks);
 
@@ -168,17 +173,14 @@ public class SeedLoader implements CommandLineRunner {
         course.setTitleEn(d.getTitle() + " (" + months + "-month)");
         course.setDescription("共 " + totalLessons + " 课时 · " + weeks + " 周 · 每周约 "
             + lessonsPerWeek + " 课时 · 对标" + d.getExam()
-            + "。话题由易到难，对话、精听、跟读交替编排"
-            + (withReview ? "，每单元附复习课。" : "。"));
+            + "。每单元以 Boss 挑战赛收官"
+            + (withReview ? "，配单元复习课。" : "。"));
         course.setSortNo(sortNo++);
         courseMapper.insert(course);
         courseCount++;
 
         int idx = 0;
         for (ScenarioEntity scenario : picked) {
-          String[] cycle = withReview
-              ? new String[]{"dialog", "listening", "shadowing", "review"}
-              : new String[]{"dialog", "listening", "shadowing"};
           for (String type : cycle) {
             CourseLessonEntity lesson = new CourseLessonEntity();
             lesson.setCourseId(course.getId());
@@ -187,7 +189,7 @@ public class SeedLoader implements CommandLineRunner {
             lesson.setScenarioId("review".equals(type) ? null : scenario.getId());
             lesson.setTitleZh("第 " + (idx + 1) + " 课 · " + typeLabel(type)
                 + ("review".equals(type) ? "" : " · " + scenario.getTitleZh()));
-            lesson.setMinutes(10);
+            lesson.setMinutes("boss".equals(type) ? 5 : 10);
             courseLessonMapper.insert(lesson);
             idx++;
             lessonCount++;
@@ -203,6 +205,7 @@ public class SeedLoader implements CommandLineRunner {
       case "listening" -> "听力精听";
       case "shadowing" -> "跟读评分";
       case "review" -> "单元复习";
+      case "boss" -> "Boss 挑战赛";
       default -> "对话实战";
     };
   }

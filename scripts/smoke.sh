@@ -118,7 +118,18 @@ curl -s -X POST "$BASE/study/record" -H "$AUTH" -H 'Content-Type: application/js
 NEWMIN=$(curl -s "$BASE/stats" -H "$AUTH" | jqpy "d['data']['totalMinutes']")
 [ "$NEWMIN" -ge "$((MINUTES+5))" ]; check "精听计时已计入统计（$MINUTES → $NEWMIN 分钟）" $?
 
-echo "== 12. Admin 生成场景（mock） =="
+echo "== 12.5 打卡月历 / Boss 课时 / 运营台 =="
+CAL=$(curl -s "$BASE/study/calendar" -H "$AUTH")
+CALDAY=$(echo "$CAL" | jqpy "len(d['data']['days'])")
+TODAYSTR=$(date +%F)
+HASDAY=$(echo "$CAL" | jqpy "any(x['date']=='$TODAYSTR' for x in d['data']['days'])")
+BOSSLESSON=$(echo "$CUR2" | jqpy "any(l['lessonType']=='boss' for l in d['data']['lessons'])")
+ASTATUS=$(curl -s "$BASE/admin/content/status" -H "X-Admin-Token: dev-admin")
+TEMPLATES=$(echo "$ASTATUS" | jqpy "d['data']['template']")
+[ "$HASDAY" = "True" ] && [ "$CALDAY" -ge 1 ] && [ "$BOSSLESSON" = "True" ] && [ "$TEMPLATES" -ge 100 ]
+check "月历今天有记录✓ Boss课时✓ 待重写模板 $TEMPLATES 篇" $?
+
+echo "== 13. Admin 生成场景（mock） =="
 GEN=$(curl -s -X POST "$BASE/admin/scenarios/generate" -H "X-Admin-Token: dev-admin" \
   -H 'Content-Type: application/json' -d '{"track":"travel","topic":"机场值机","cefr":"A2"}')
 GTITLE=$(echo "$GEN" | jqpy "d['data']['titleZh']")

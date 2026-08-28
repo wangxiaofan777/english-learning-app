@@ -41,6 +41,7 @@ export function lessonTypeLabel(type: string | null | undefined): string {
     listening: "听力精听",
     shadowing: "跟读评分",
     review: "单元复习",
+    boss: "Boss 挑战赛",
   };
   return map[type || ""] || "场景练习";
 }

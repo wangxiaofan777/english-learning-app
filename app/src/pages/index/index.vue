@@ -95,6 +95,7 @@ const iconFor = (item: TodayItem) => {
   if (item.kind === "dialog") return "🎙️";
   if (item.lessonType === "listening") return "🎧";
   if (item.lessonType === "shadowing") return "🗣️";
+  if (item.lessonType === "boss") return "⚔️";
   return "🎬";
 };
 
@@ -107,13 +108,15 @@ function onItemTap(item: TodayItem) {
   if (item.kind === "review") {
     goReview();
   } else if (item.kind === "scenario" && (item.scenarioId || item.lessonType === "review")) {
-    // 按当前课时类型路由：对话实战 / 听力精听 / 跟读评分 / 单元复习
+    // 按当前课时类型路由：对话实战 / 听力精听 / 跟读评分 / 单元复习 / Boss 挑战赛
     if (item.lessonType === "listening") {
       uni.navigateTo({ url: `/pages/listen/listen?id=${item.scenarioId}` });
     } else if (item.lessonType === "shadowing") {
       uni.navigateTo({ url: `/pages/practice/shadow?id=${item.scenarioId}` });
     } else if (item.lessonType === "review") {
       uni.navigateTo({ url: "/pages/vocab/review" });
+    } else if (item.lessonType === "boss") {
+      uni.navigateTo({ url: `/pages/challenge/boss?id=${item.scenarioId}` });
     } else {
       startChat(item.scenarioId as string);
     }
