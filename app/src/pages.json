@@ -35,6 +35,14 @@
     {
       "path": "pages/vocab/review",
       "style": { "navigationBarTitleText": "复习" }
+    },
+    {
+      "path": "pages/listen/listen",
+      "style": { "navigationBarTitleText": "听力精听" }
+    },
+    {
+      "path": "pages/practice/shadow",
+      "style": { "navigationBarTitleText": "跟读评分" }
     }
   ],
   "globalStyle": {

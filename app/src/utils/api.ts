@@ -116,6 +116,8 @@ export const api = {
     }),
   today: () => request<TodayView>("GET", "/api/v1/today"),
   stats: () => request<StatsView>("GET", "/api/v1/stats"),
+  recordPractice: (kind: string, minutes = 1, count = 1) =>
+    request<void>("POST", "/api/v1/study/record", { kind, minutes, count }),
 };
 
 type AnyObject = Record<string, unknown>;

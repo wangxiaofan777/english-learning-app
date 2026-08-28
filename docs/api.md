@@ -51,6 +51,7 @@ ID 均以字符串形式返回（防 JS 精度丢失）。
 | --- | --- | --- |
 | GET | `/today` | 每日三件事 `{date, streakDays, cefrLevel, dueCount, todayMinutes, items[3]}` |
 | GET | `/stats` | `{totalMinutes, totalDialogs, wordsTotal, wordsLearning, week[7]}` |
+| POST | `/study/record` | 端上练习计时，body `{kind: listening/shadowing, minutes?, count?}`，计入打卡与统计 |
 
 ## 管理（X-Admin-Token 鉴权）
 

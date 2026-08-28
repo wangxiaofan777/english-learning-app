@@ -75,7 +75,13 @@ ITEMS=$(echo "$TODAY" | jqpy "len(d['data']['items'])")
 MINUTES=$(curl -s "$BASE/stats" -H "$AUTH" | jqpy "d['data']['totalMinutes']")
 [ "$ITEMS" = "3" ] && [ "$STREAK" -ge 1 ] && [ "$MINUTES" -ge 1 ]; check "streak=$STREAK 计划$ITEMS项 已学${MINUTES}分钟" $?
 
-echo "== 11. Admin 生成场景（mock） =="
+echo "== 11. 听说练习计时 =="
+curl -s -X POST "$BASE/study/record" -H "$AUTH" -H 'Content-Type: application/json' \
+  -d '{"kind":"listening","minutes":5,"count":8}' >/dev/null
+NEWMIN=$(curl -s "$BASE/stats" -H "$AUTH" | jqpy "d['data']['totalMinutes']")
+[ "$NEWMIN" -ge "$((MINUTES+5))" ]; check "精听计时已计入统计（$MINUTES → $NEWMIN 分钟）" $?
+
+echo "== 12. Admin 生成场景（mock） =="
 GEN=$(curl -s -X POST "$BASE/admin/scenarios/generate" -H "X-Admin-Token: dev-admin" \
   -H 'Content-Type: application/json' -d '{"track":"travel","topic":"机场值机","cefr":"A2"}')
 GTITLE=$(echo "$GEN" | jqpy "d['data']['titleZh']")

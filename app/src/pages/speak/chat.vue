@@ -27,7 +27,10 @@
       </view>
 
       <view class="finish-row">
-        <text class="muted">{{ detail?.status === "finished" ? "本轮已结束" : "说够 3 轮后来复盘" }}</text>
+        <view class="finish-left">
+          <text class="muted">{{ detail?.status === "finished" ? "本轮已结束" : "说够 3 轮后来复盘" }}</text>
+          <text class="finish-link listen-link" @tap="goListen">🎧 听本场景</text>
+        </view>
         <text class="finish-link" @tap="finish">结束并复盘</text>
       </view>
     </view>
@@ -245,6 +248,12 @@ function closeRecap() {
   uni.navigateBack();
 }
 
+function goListen() {
+  if (detail.value?.scenarioId) {
+    uni.navigateTo({ url: `/pages/listen/listen?id=${detail.value.scenarioId}` });
+  }
+}
+
 function restart() {
   uni.redirectTo({
     url: `/pages/speak/chat?id=${conversationId}`,
@@ -359,6 +368,16 @@ function stopRecord() {
   justify-content: space-between;
   align-items: center;
   margin-top: 20rpx;
+}
+
+.finish-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.listen-link {
+  color: #b45309;
 }
 
 .finish-link {

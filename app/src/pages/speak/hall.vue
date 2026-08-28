@@ -34,7 +34,17 @@
         <text class="chip chip--gray">{{ s.lineCount }} 句示范</text>
         <text class="chip chip--gray">{{ s.vocabCount }} 个生词</text>
         <text v-if="s.practiced" class="chip chip--amber">练过</text>
-        <text class="start-hint">开始对话 →</text>
+      </view>
+      <view class="scenario-actions">
+        <view class="action action--primary" @tap.stop="startChat(s.id)">
+          <text>🎙️ 开始对话</text>
+        </view>
+        <view class="action" @tap.stop="goListen(s.id)">
+          <text>🎧 听力精听</text>
+        </view>
+        <view class="action" @tap.stop="goShadow(s.id)">
+          <text>🗣️ 跟读评分</text>
+        </view>
       </view>
     </view>
   </view>
@@ -80,6 +90,14 @@ async function startChat(scenarioId: string) {
   } catch (e) {
     uni.hideLoading();
   }
+}
+
+function goListen(scenarioId: string) {
+  uni.navigateTo({ url: `/pages/listen/listen?id=${scenarioId}` });
+}
+
+function goShadow(scenarioId: string) {
+  uni.navigateTo({ url: `/pages/practice/shadow?id=${scenarioId}` });
 }
 </script>
 
@@ -154,11 +172,28 @@ async function startChat(scenarioId: string) {
   flex-wrap: wrap;
 }
 
-.start-hint {
-  margin-left: auto;
+.scenario-actions {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 22rpx;
+  border-top: 2rpx solid #f3f4f6;
+  padding-top: 22rpx;
+}
+
+.action {
+  flex: 1;
+  text-align: center;
   font-size: 24rpx;
   color: #16a34a;
+  background: #f0fdf4;
+  border-radius: 999rpx;
+  padding: 14rpx 0;
   font-weight: 600;
+}
+
+.action--primary {
+  background: #16a34a;
+  color: #ffffff;
 }
 
 .empty {
