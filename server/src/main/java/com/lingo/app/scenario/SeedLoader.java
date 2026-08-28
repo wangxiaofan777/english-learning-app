@@ -6,6 +6,8 @@ import com.lingo.app.course.CourseEntity;
 import com.lingo.app.course.CourseLessonEntity;
 import com.lingo.app.course.mapper.CourseLessonMapper;
 import com.lingo.app.course.mapper.CourseMapper;
+import com.lingo.app.course.mapper.LessonProgressMapper;
+import com.lingo.app.course.mapper.UserCourseMapper;
 import com.lingo.app.scenario.mapper.ScenarioLineMapper;
 import com.lingo.app.scenario.mapper.ScenarioMapper;
 import com.lingo.app.scenario.mapper.ScenarioVocabMapper;
@@ -30,6 +32,9 @@ public class SeedLoader implements CommandLineRunner {
   private final ScenarioVocabMapper vocabMapper;
   private final CourseMapper courseMapper;
   private final CourseLessonMapper courseLessonMapper;
+  private final UserCourseMapper userCourseMapper;
+  private final LessonProgressMapper lessonProgressMapper;
+  private final GenerationService generationService;
   private final ObjectMapper objectMapper;
 
   @Override
@@ -39,10 +44,11 @@ public class SeedLoader implements CommandLineRunner {
     } else {
       log.info("scenarios already seeded, skip");
     }
-    if (courseMapper.selectCount(null) == 0) {
-      seedCourses();
+    // 课程目录（6 方向 × 3 周期 = 18 门）；数量不足视为旧版种子，重建目录
+    if (courseMapper.selectCount(null) < 18) {
+      reseedCourseCatalog();
     } else {
-      log.info("courses already seeded, skip");
+      log.info("course catalog already seeded, skip");
     }
   }
 
@@ -88,44 +94,99 @@ public class SeedLoader implements CommandLineRunner {
     log.info("seeded {} scenarios", seed.getScenarios().size());
   }
 
-  /** 课程种入：课时按主题关联到已存在的场景 */
+  /** 重建课程目录：清掉旧课程/报名/进度，按大纲重新生成 */
+  private void reseedCourseCatalog() throws Exception {
+    courseLessonMapper.delete(null);
+    courseMapper.delete(null);
+    userCourseMapper.delete(null);
+    lessonProgressMapper.delete(null);
+    seedCourses();
+  }
+
+  /**
+   * 课程目录：按大纲（6 学段方向 × 3/6/12 个月周期）生成课程与课时。
+   * 课时场景按主题复用手写场景，缺失的用模板生成（零 LLM 调用，建课秒级完成）。
+   */
   private void seedCourses() throws Exception {
-    CourseSeed seed = objectMapper.readValue(
-        new ClassPathResource("seed/courses.json").getInputStream(), CourseSeed.class);
+    Syllabus syllabus = objectMapper.readValue(
+        new ClassPathResource("seed/syllabus.json").getInputStream(), Syllabus.class);
     Map<String, ScenarioEntity> byTitle = scenarioMapper.selectList(null).stream()
         .collect(Collectors.toMap(ScenarioEntity::getTitleZh, Function.identity(), (a, b) -> a));
-    int sortNo = 0;
-    int lessonCount = 0;
-    for (SeedCourse c : seed.getCourses()) {
-      CourseEntity entity = new CourseEntity();
-      entity.setTrack(c.getTrack());
-      entity.setAgeBand(c.getAgeBand());
-      entity.setCefr(c.getCefr());
-      entity.setTitleZh(c.getTitleZh());
-      entity.setTitleEn(c.getTitleEn());
-      entity.setDescription(c.getDescription());
-      entity.setSortNo(sortNo++);
-      courseMapper.insert(entity);
 
-      int idx = 0;
-      for (SeedLesson l : c.getLessons()) {
-        ScenarioEntity scenario = byTitle.get(l.getTopic());
-        if (scenario == null) {
-          log.warn("course lesson topic not found, skipped: {}", l.getTopic());
-          continue;
+    int sortNo = 0;
+    int courseCount = 0;
+    int lessonCount = 0;
+    for (SyllabusDirection d : syllabus.getDirections()) {
+      // 主题 → 场景
+      List<ScenarioEntity> topicScenarios = new java.util.ArrayList<>();
+      for (String topic : d.getTopics()) {
+        ScenarioEntity existing = byTitle.get(topic);
+        if (existing == null) {
+          generationService.generateTemplate("course", topic, d.getCefr());
+          existing = scenarioMapper.selectOne(new LambdaQueryWrapper<ScenarioEntity>()
+              .eq(ScenarioEntity::getTitleZh, topic).last("limit 1"));
         }
-        CourseLessonEntity lesson = new CourseLessonEntity();
-        lesson.setCourseId(entity.getId());
-        lesson.setIdx(idx++);
-        lesson.setLessonType(l.getType());
-        lesson.setScenarioId(scenario.getId());
-        lesson.setTitleZh(l.getTitleZh());
-        lesson.setMinutes(10);
-        courseLessonMapper.insert(lesson);
-        lessonCount++;
+        topicScenarios.add(existing);
+      }
+
+      // 周期计划：3 个月=12 话题×3 课时；6 个月=24×3；12 个月=24×4（含单元复习课）
+      int[][] plans = {{3, 12, 3}, {6, 24, 3}, {12, 24, 4}};
+      for (int[] plan : plans) {
+        int months = plan[0];
+        int topicCount = plan[1];
+        boolean withReview = months == 12;
+        List<ScenarioEntity> picked = topicScenarios.subList(0, topicCount);
+        int totalLessons = picked.size() * (withReview ? 4 : 3);
+        int weeks = months * 4;
+        int lessonsPerWeek = Math.round((float) totalLessons / weeks);
+
+        CourseEntity course = new CourseEntity();
+        course.setTrack(d.getCode());
+        course.setAgeBand(d.getAgeBand());
+        course.setCefr(d.getCefr());
+        course.setExamTag(d.getExam());
+        course.setMonths(months);
+        course.setTitleZh(d.getTitle() + " · " + months + " 个月");
+        course.setTitleEn(d.getTitle() + " (" + months + "-month)");
+        course.setDescription("共 " + totalLessons + " 课时 · " + weeks + " 周 · 每周约 "
+            + lessonsPerWeek + " 课时 · 对标" + d.getExam()
+            + "。话题由易到难，对话、精听、跟读交替编排"
+            + (withReview ? "，每单元附复习课。" : "。"));
+        course.setSortNo(sortNo++);
+        courseMapper.insert(course);
+        courseCount++;
+
+        int idx = 0;
+        for (ScenarioEntity scenario : picked) {
+          String[] cycle = withReview
+              ? new String[]{"dialog", "listening", "shadowing", "review"}
+              : new String[]{"dialog", "listening", "shadowing"};
+          for (String type : cycle) {
+            CourseLessonEntity lesson = new CourseLessonEntity();
+            lesson.setCourseId(course.getId());
+            lesson.setIdx(idx);
+            lesson.setLessonType(type);
+            lesson.setScenarioId("review".equals(type) ? null : scenario.getId());
+            lesson.setTitleZh("第 " + (idx + 1) + " 课 · " + typeLabel(type)
+                + ("review".equals(type) ? "" : " · " + scenario.getTitleZh()));
+            lesson.setMinutes(10);
+            courseLessonMapper.insert(lesson);
+            idx++;
+            lessonCount++;
+          }
+        }
       }
     }
-    log.info("seeded {} courses with {} lessons", seed.getCourses().size(), lessonCount);
+    log.info("seeded course catalog: {} courses, {} lessons", courseCount, lessonCount);
+  }
+
+  private String typeLabel(String type) {
+    return switch (type) {
+      case "listening" -> "听力精听";
+      case "shadowing" -> "跟读评分";
+      case "review" -> "单元复习";
+      default -> "对话实战";
+    };
   }
 
   @Data
@@ -163,25 +224,18 @@ public class SeedLoader implements CommandLineRunner {
   }
 
   @Data
-  public static class CourseSeed {
-    private List<SeedCourse> courses = new java.util.ArrayList<>();
+  public static class Syllabus {
+    private List<SyllabusDirection> directions = new java.util.ArrayList<>();
   }
 
   @Data
-  public static class SeedCourse {
-    private String track;
+  public static class SyllabusDirection {
+    private String code;
+    private String stage;
+    private String exam;
     private String ageBand;
     private String cefr;
-    private String titleZh;
-    private String titleEn;
-    private String description;
-    private List<SeedLesson> lessons = new java.util.ArrayList<>();
-  }
-
-  @Data
-  public static class SeedLesson {
-    private String type;
-    private String topic;
-    private String titleZh;
+    private String title;
+    private List<String> topics = new java.util.ArrayList<>();
   }
 }

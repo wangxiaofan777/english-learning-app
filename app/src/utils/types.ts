@@ -167,6 +167,8 @@ export interface CourseCard {
   track: string;
   ageBand: string | null;
   cefr: string | null;
+  examTag: string | null;
+  months: number;
   titleZh: string;
   titleEn: string;
   description: string;
@@ -180,8 +182,8 @@ export type LessonStatus = "done" | "current" | "locked";
 export interface LessonView {
   id: string;
   idx: number;
-  lessonType: "dialog" | "listening" | "shadowing";
-  scenarioId: string;
+  lessonType: "dialog" | "listening" | "shadowing" | "review";
+  scenarioId: string | null;
   titleZh: string;
   minutes: number;
   status: LessonStatus;
@@ -192,6 +194,8 @@ export interface CourseDetail {
   track: string;
   ageBand: string | null;
   cefr: string | null;
+  examTag: string | null;
+  months: number;
   titleZh: string;
   titleEn: string;
   description: string;

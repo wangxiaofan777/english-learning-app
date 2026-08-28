@@ -35,12 +35,14 @@ CEFR=$(curl -s -X POST "$BASE/placement/submit" -H "$AUTH" -H 'Content-Type: app
   -d "{\"answers\":$ANSWERS,\"spokenText\":\"I am a data analyst and I like charts.\"}" | jqpy "d['data']['cefr']")
 [ "$QCOUNT" = "10" ] && [ -n "$CEFR" ]; check "placement 10题 → 定级 $CEFR" $?
 
-echo "== 4.5 课程自动制定 =="
+echo "== 4.5 课程自动制定（学段方向 + 周期） =="
 CUR=$(curl -s "$BASE/courses/current" -H "$AUTH")
 CTITLE=$(echo "$CUR" | jqpy "d['data']['titleZh'] if d['data'] else None")
 CCOUNT=$(curl -s "$BASE/courses" -H "$AUTH" | jqpy "len(d['data'])")
+EXAM=$(echo "$CUR" | jqpy "d['data']['examTag']")
 LESSON0=$(echo "$CUR" | jqpy "[l for l in d['data']['lessons'] if l['status']=='current'][0]['titleZh']")
-[ -n "$CTITLE" ] && [ "$CCOUNT" -ge 2 ] && [ -n "$LESSON0" ]; check "自动报名「$CTITLE」共$CCOUNT门课，当前: $LESSON0" $?
+[ "$CCOUNT" -ge 18 ] && echo "$CTITLE" | grep -q "3 个月" && [ -n "$LESSON0" ]
+check "目录$CCOUNT门课，自动派「$CTITLE」(对标$EXAM)，当前: $LESSON0" $?
 
 echo "== 4.6 完课推进（精听第1课场景后对话解锁） =="
 SCID0=$(echo "$CUR" | jqpy "[l for l in d['data']['lessons'] if l['status']=='current'][0]['scenarioId']")

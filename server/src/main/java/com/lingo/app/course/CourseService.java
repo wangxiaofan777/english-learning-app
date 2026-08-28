@@ -41,6 +41,7 @@ public class CourseService {
       List<CourseLessonEntity> lessons = lessonsOf(c.getId());
       long done = lessons.stream().filter(l -> doneLessonIds.contains(l.getId())).count();
       cards.add(new CourseCard(c.getId(), c.getTrack(), c.getAgeBand(), c.getCefr(),
+          c.getExamTag(), c.getMonths() == null ? 3 : c.getMonths(),
           c.getTitleZh(), c.getTitleEn(), c.getDescription(), lessons.size(), (int) done,
           enrolled.contains(c.getId())));
     }
@@ -93,27 +94,49 @@ public class CourseService {
   }
 
   /**
-   * 按登记信息自动制定课程：优先「目标轨道 + 年龄段」匹配，其次目标轨道，最后任一课程。
+   * 按登记信息自动制定课程：年龄段 + 目标 → 学段方向；默认 3 个月周期（快速见效，可随时切换）。
+   * 方向映射：少儿→小学(KET)；青少年按等级→初中(中考)/高中(高考)；
+   * 成人：职场→职场(BEC)、考试→四六级、旅行/日常→出境生活。
    */
   public void autoEnroll(Long userId, String track, String ageBand, String cefr) {
     if (current(userId) != null) {
       return; // 已有进行中的课程，不打乱用户节奏
     }
-    List<CourseEntity> all = courseMapper.selectList(
-        new LambdaQueryWrapper<CourseEntity>().orderByAsc(CourseEntity::getSortNo));
-    if (all.isEmpty()) {
+    String direction = resolveDirection(track, ageBand, cefr);
+    List<CourseEntity> candidates = courseMapper.selectList(
+        new LambdaQueryWrapper<CourseEntity>()
+            .eq(CourseEntity::getTrack, direction)
+            .eq(CourseEntity::getMonths, 3));
+    CourseEntity pick = candidates.isEmpty()
+        ? courseMapper.selectList(new LambdaQueryWrapper<CourseEntity>()
+            .eq(CourseEntity::getTrack, direction)).stream().findFirst().orElse(null)
+        : candidates.get(0);
+    if (pick == null) {
+      pick = courseMapper.selectList(new LambdaQueryWrapper<CourseEntity>()
+          .orderByAsc(CourseEntity::getSortNo)).stream().findFirst().orElse(null);
+    }
+    if (pick == null) {
       return;
     }
-    CourseEntity pick = all.stream()
-        .filter(c -> c.getTrack().equals(track) && ageBand != null && ageBand.equals(c.getAgeBand()))
-        .findFirst()
-        .orElseGet(() -> all.stream()
-            .filter(c -> c.getTrack().equals(track))
-            .findFirst()
-            .orElse(all.get(0)));
     enroll(userId, pick.getId());
-    log.info("auto-enrolled user {} into course {} (track={}, age={}, cefr={})",
-        userId, pick.getId(), track, ageBand, cefr);
+    log.info("auto-enrolled user {} into course {} (direction={}, age={}, cefr={})",
+        userId, pick.getId(), direction, ageBand, cefr);
+  }
+
+  private String resolveDirection(String track, String ageBand, String cefr) {
+    String level = cefr == null ? "A2" : cefr;
+    if ("child".equals(ageBand)) {
+      return "primary";
+    }
+    if ("teen".equals(ageBand)) {
+      return level.startsWith("B") ? "senior" : "junior";
+    }
+    return switch (track == null ? "" : track) {
+      case "work" -> "work";
+      case "exam" -> "cet";
+      case "travel", "daily" -> "travel";
+      default -> "travel";
+    };
   }
 
   // ---------- 完课 ----------
@@ -127,11 +150,23 @@ public class CourseService {
     if (current == null || current.currentLessonId() == null) {
       return new CompleteResult(false, null, 0, 0, false);
     }
-    CourseLessonEntity lesson = lessonsOf(current.id()).stream()
-        .filter(l -> l.getLessonType().equals(lessonType)
-            && scenarioId != null && scenarioId.equals(l.getScenarioId()))
-        .findFirst()
-        .orElse(null);
+    List<CourseLessonEntity> all = lessonsOf(current.id());
+    CourseLessonEntity lesson;
+    if (scenarioId != null) {
+      // 练习带场景：按类型 + 场景匹配（自由练习同场景也可推进课时）
+      lesson = all.stream()
+          .filter(l -> l.getLessonType().equals(lessonType)
+              && scenarioId.equals(l.getScenarioId()))
+          .findFirst()
+          .orElse(null);
+    } else {
+      // 无场景（如单元复习）：只标记当前课时，避免跳关
+      lesson = all.stream()
+          .filter(l -> l.getId().equals(current.currentLessonId())
+              && l.getLessonType().equals(lessonType))
+          .findFirst()
+          .orElse(null);
+    }
     if (lesson == null) {
       return new CompleteResult(false, null, current.doneCount(), current.totalCount(), false);
     }
@@ -174,7 +209,8 @@ public class CourseService {
         })
         .toList();
     long done = views.stream().filter(v -> "done".equals(v.status())).count();
-    return new CourseDetail(c.getId(), c.getTrack(), c.getAgeBand(), c.getCefr(), c.getTitleZh(),
+    return new CourseDetail(c.getId(), c.getTrack(), c.getAgeBand(), c.getCefr(),
+        c.getExamTag(), c.getMonths() == null ? 3 : c.getMonths(), c.getTitleZh(),
         c.getTitleEn(), c.getDescription(), views, currentLessonId, (int) done, views.size());
   }
 
@@ -202,18 +238,19 @@ public class CourseService {
 
   // ---------- DTO ----------
 
-  public record CourseCard(Long id, String track, String ageBand, String cefr, String titleZh,
-                           String titleEn, String description, int lessonCount, int doneCount,
-                           boolean enrolled) {
+  public record CourseCard(Long id, String track, String ageBand, String cefr, String examTag,
+                           int months, String titleZh, String titleEn, String description,
+                           int lessonCount, int doneCount, boolean enrolled) {
   }
 
   public record LessonView(Long id, Integer idx, String lessonType, Long scenarioId,
                            String titleZh, int minutes, String status) {
   }
 
-  public record CourseDetail(Long id, String track, String ageBand, String cefr, String titleZh,
-                             String titleEn, String description, List<LessonView> lessons,
-                             Long currentLessonId, int doneCount, int totalCount) {
+  public record CourseDetail(Long id, String track, String ageBand, String cefr, String examTag,
+                             int months, String titleZh, String titleEn, String description,
+                             List<LessonView> lessons, Long currentLessonId, int doneCount,
+                             int totalCount) {
   }
 
   public record CompleteResult(boolean newlyDone, Long lessonId, int doneCount, int totalCount,

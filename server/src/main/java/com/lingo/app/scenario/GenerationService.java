@@ -56,10 +56,19 @@ public class GenerationService {
     } else {
       node = mockGeneration(track, topic, cefr);
     }
-    return persist(node, track, topic, cefr);
+    return persist(node, track, topic, cefr, "ai");
   }
 
-  private ScenarioCard persist(JsonNode node, String track, String topic, String cefr) {
+  /**
+   * 课程大纲建课时用的模板场景：始终走模板（不调 LLM，保证建课秒级完成），
+   * 后续可用 admin 接口对单个场景做真实 LLM 重写。
+   */
+  public ScenarioCard generateTemplate(String track, String topic, String cefr) {
+    return persist(mockGeneration(track, topic, cefr), track, topic, cefr, "template");
+  }
+
+  private ScenarioCard persist(JsonNode node, String track, String topic, String cefr,
+                               String source) {
     JsonNode lines = node.path("lines");
     JsonNode vocab = node.path("vocab");
     if (!lines.isArray() || lines.size() < 4 || !vocab.isArray() || vocab.isEmpty()) {
@@ -74,7 +83,7 @@ public class GenerationService {
     entity.setRoleSetting(node.path("roleSetting").asText(
         "You are a friendly conversation partner helping the learner practice."));
     entity.setIntroZh(node.path("introZh").asText(""));
-    entity.setSource("ai");
+    entity.setSource(source);
     entity.setStatus("published");
     entity.setSortNo(100);
     scenarioMapper.insert(entity);

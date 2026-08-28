@@ -22,6 +22,8 @@ public class ScenarioService {
   public List<ScenarioCard> list(String track, long page, long size, Set<Long> practicedIds) {
     LambdaQueryWrapper<ScenarioEntity> qw = new LambdaQueryWrapper<ScenarioEntity>()
         .eq(ScenarioEntity::getStatus, "published")
+        // 课程大纲的模板场景只通过课时进入，不进入自由练习大厅
+        .ne(ScenarioEntity::getSource, "template")
         .eq(track != null && !track.isBlank(), ScenarioEntity::getTrack, track)
         .orderByAsc(ScenarioEntity::getSortNo)
         .orderByAsc(ScenarioEntity::getId);

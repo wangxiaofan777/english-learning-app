@@ -111,6 +111,7 @@ public class StudyService {
     String scenarioItemTitle = switch (lessonType == null ? "" : lessonType) {
         case "listening" -> "听力精听";
         case "shadowing" -> "跟读评分";
+        case "review" -> "单元复习";
         case "dialog" -> "对话实战";
         default -> "学场景";
     };

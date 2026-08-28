@@ -124,7 +124,7 @@ export const api = {
   courses: () => request<CourseCard[]>("GET", "/api/v1/courses"),
   currentCourse: () => request<CourseDetail | null>("GET", "/api/v1/courses/current"),
   enrollCourse: (id: string) => request<CourseCard>("POST", `/api/v1/courses/${id}/enroll`),
-  completeLesson: (lessonType: string, scenarioId: string, score?: number) =>
+  completeLesson: (lessonType: string, scenarioId: string | null, score?: number) =>
     request<{ newlyDone: boolean; doneCount: number; totalCount: number; courseFinished: boolean }>(
       "POST",
       "/api/v1/courses/complete",

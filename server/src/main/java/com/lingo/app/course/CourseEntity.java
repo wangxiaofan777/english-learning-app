@@ -16,6 +16,8 @@ public class CourseEntity {
   private String track;
   private String ageBand;
   private String cefr;
+  private String examTag;
+  private Integer months;
   private String titleZh;
   private String titleEn;
   private String description;

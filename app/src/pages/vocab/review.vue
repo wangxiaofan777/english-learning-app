@@ -102,6 +102,13 @@ async function grade(rating: number) {
   reveal.value = false;
   index.value += 1;
   if (index.value >= cards.value.length) {
+    // 复习完成：计入时长并推进课程中的「单元复习」课时
+    try {
+      await api.recordPractice("review", Math.max(1, Math.round(doneCount.value / 6)), doneCount.value);
+      await api.completeLesson("review", null);
+    } catch (e) {
+      // 上报失败不打断完成页
+    }
     phase.value = "done";
   }
 }

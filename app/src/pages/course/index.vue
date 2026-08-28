@@ -50,30 +50,28 @@
     <!-- 未报名：引导选课 -->
     <view v-else class="card hero-empty">
       <text class="title-lg">选一门课程开始</text>
-      <text class="muted">完成登记后系统会为你自动制定课程，也可以在下方手动切换</text>
+      <text class="muted">完成登记后系统会为你自动制定课程，也可以在下方按学段和周期手动选择</text>
     </view>
 
-    <!-- 全部课程 -->
-    <view class="card">
-      <text class="section-title">全部课程</text>
-      <view
-        v-for="c in courses"
-        :key="c.id"
-        class="course-row"
-        :class="{ active: myCourse && myCourse.id === c.id }"
-        @tap="pickCourse(c)"
-      >
-        <view class="course-body">
-          <text class="course-title">{{ c.titleZh }}</text>
-          <text class="muted">
-            {{ trackLabel(c.track) }} · {{ c.lessonCount }} 课时
-            <template v-if="c.cefr"> · {{ c.cefr }}</template>
-          </text>
-          <text class="course-desc">{{ c.description }}</text>
+    <!-- 全部课程：按学段方向分组，选周期报名 -->
+    <view class="card" v-for="group in courseGroups" :key="group.track">
+      <view class="group-head">
+        <text class="section-title">{{ group.label }}</text>
+        <text class="chip chip--gray">对标{{ group.exam }}</text>
+      </view>
+      <text class="muted group-sub">{{ group.topicCount }} 个话题 · 由易到难 · 对话/精听/跟读交替</text>
+      <view class="duration-row">
+        <view
+          v-for="v in group.variants"
+          :key="v.id"
+          class="duration-card"
+          :class="{ active: currentCourseId === v.id }"
+          @tap="pickCourse(v)"
+        >
+          <text class="d-months">{{ v.months }} 个月</text>
+          <text class="d-lessons">{{ v.lessonCount }} 课时</text>
+          <text class="d-state">{{ currentCourseId === v.id ? "学习中" : v.enrolled ? "已报名" : "选它" }}</text>
         </view>
-        <text class="chip" :class="c.enrolled ? '' : 'chip--gray'">
-          {{ myCourse && myCourse.id === c.id ? "学习中" : c.enrolled ? "已报名" : "开始学习" }}
-        </text>
       </view>
     </view>
 
@@ -98,6 +96,41 @@ import { lessonTypeLabel, trackLabel } from "../../utils/format";
 
 const myCourse = ref<CourseDetail | null>(null);
 const courses = ref<CourseCard[]>([]);
+
+const currentCourseId = computed(() => myCourse.value?.id || "");
+
+interface CourseGroup {
+  track: string;
+  label: string;
+  exam: string;
+  topicCount: number;
+  variants: CourseCard[];
+}
+
+/** 课程目录按学段方向分组，每方向提供 3/6/12 个月三档周期 */
+const courseGroups = computed<CourseGroup[]>(() => {
+  const map = new Map<string, CourseGroup>();
+  for (const c of courses.value) {
+    let g = map.get(c.track);
+    if (!g) {
+      g = {
+        track: c.track,
+        label: trackLabel(c.track),
+        exam: c.examTag || "-",
+        topicCount: 0,
+        variants: [],
+      };
+      map.set(c.track, g);
+    }
+    g.variants.push(c);
+  }
+  const groups = Array.from(map.values());
+  for (const g of groups) {
+    g.variants.sort((a, b) => a.months - b.months);
+    g.topicCount = Math.max(...g.variants.map((v) => Math.ceil(v.lessonCount / (v.months === 12 ? 4 : 3))));
+  }
+  return groups;
+});
 
 const progressPercent = computed(() =>
   !myCourse.value || myCourse.value.totalCount === 0
@@ -132,17 +165,19 @@ function openLesson(lesson: LessonView) {
 }
 
 async function routeToLesson(
-  lessonType: "dialog" | "listening" | "shadowing",
-  scenarioId: string
+  lessonType: "dialog" | "listening" | "shadowing" | "review",
+  scenarioId: string | null
 ) {
   if (lessonType === "listening") {
     uni.navigateTo({ url: `/pages/listen/listen?id=${scenarioId}` });
   } else if (lessonType === "shadowing") {
     uni.navigateTo({ url: `/pages/practice/shadow?id=${scenarioId}` });
+  } else if (lessonType === "review") {
+    uni.navigateTo({ url: "/pages/vocab/review" });
   } else {
     uni.showLoading({ title: "准备场景…" });
     try {
-      const conv = await api.createConversation(scenarioId);
+      const conv = await api.createConversation(scenarioId as string);
       uni.hideLoading();
       uni.navigateTo({ url: `/pages/speak/chat?id=${conv.conversationId}` });
     } catch (e) {
@@ -152,7 +187,7 @@ async function routeToLesson(
 }
 
 async function pickCourse(c: CourseCard) {
-  if (myCourse.value && myCourse.value.id === c.id) return;
+  if (currentCourseId.value === c.id) return;
   await api.enrollCourse(c.id);
   await refresh();
   uni.showToast({ title: `已切换到「${c.titleZh}」`, icon: "none" });
@@ -320,39 +355,54 @@ function goHall() {
   padding: 60rpx 32rpx;
 }
 
-.course-row {
+.group-head {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 26rpx 0;
-  border-bottom: 2rpx solid #f3f4f6;
+  justify-content: space-between;
 }
 
-.course-row:last-child {
-  border-bottom: none;
+.group-sub {
+  display: block;
+  margin: 8rpx 0 20rpx;
 }
 
-.course-row.active .course-title {
-  color: #16a34a;
+.duration-row {
+  display: flex;
+  gap: 16rpx;
 }
 
-.course-body {
+.duration-card {
   flex: 1;
+  background: #f9fafb;
+  border: 3rpx solid transparent;
+  border-radius: 18rpx;
+  padding: 22rpx 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 6rpx;
 }
 
-.course-title {
+.duration-card.active {
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.d-months {
   font-size: 30rpx;
   font-weight: 700;
   color: #111827;
 }
 
-.course-desc {
+.d-lessons {
   font-size: 22rpx;
-  color: #9ca3af;
-  line-height: 1.5;
+  color: #6b7280;
+}
+
+.d-state {
+  font-size: 20rpx;
+  color: #16a34a;
+  font-weight: 600;
 }
 
 .free-card {

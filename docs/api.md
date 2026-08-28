@@ -49,13 +49,14 @@ ID 均以字符串形式返回（防 JS 精度丢失）。
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/courses` | 全部课程 `{id, track, ageBand, cefr, titleZh, description, lessonCount, doneCount, enrolled}` |
+| GET | `/courses` | 课程目录（18 门：6 学段方向 × 3 周期）：`{id, track(方向码), examTag, months, titleZh, lessonCount, doneCount, enrolled}` |
 | GET | `/courses/current` | 当前课程详情 + 课时清单（status: done/current/locked）+ currentLessonId；未报名返回 null |
 | GET | `/courses/{id}` | 指定课程详情 |
-| POST | `/courses/{id}/enroll` | 报名/切换课程（幂等） |
-| POST | `/courses/complete` | 完课上报，body `{lessonType, scenarioId, score?}`，幂等；返回 `{newlyDone, doneCount, totalCount, courseFinished}` |
+| POST | `/courses/{id}/enroll` | 报名/切换课程与周期（幂等） |
+| POST | `/courses/complete` | 完课上报，body `{lessonType, scenarioId|null, score?}`（review 课时 scenarioId 传 null，仅推进当前课），幂等 |
 
-课程制定规则：Onboarding 提交与测评定级时自动匹配「目标轨道 + 年龄段」的课程并报名（已有进行中课程则不打扰）。
+课程制定规则：Onboarding 提交与测评定级时自动匹配「年龄段 + 目标 → 学段方向」的课程（默认 3 个月周期）：
+child→小学(KET/PET)；teen 按等级→初中(中考)/高中(高考)；成人 work→职场(BEC)、exam→四六级、travel/daily→出境生活。
 
 ## 学习计划与统计
 

@@ -2,12 +2,27 @@
 
 export function trackLabel(track: string | null | undefined): string {
   const map: Record<string, string> = {
+    primary: "小学 · KET/PET",
+    junior: "初中 · 中考",
+    senior: "高中 · 高考",
+    cet: "大学 · 四六级",
+    work: "职场 · BEC 商务",
+    travel: "出境生活口语",
     daily: "日常交流",
-    work: "职场口语",
-    travel: "出国旅行",
-    exam: "考试备考",
   };
   return map[track || ""] || "综合练习";
+}
+
+export function stageLabel(track: string | null | undefined): string {
+  const map: Record<string, string> = {
+    primary: "小学",
+    junior: "初中",
+    senior: "高中",
+    cet: "大学",
+    work: "职场",
+    travel: "生活",
+  };
+  return map[track || ""] || "综合";
 }
 
 export function ageBandLabel(band: string | null | undefined): string {
@@ -25,6 +40,7 @@ export function lessonTypeLabel(type: string | null | undefined): string {
     dialog: "对话实战",
     listening: "听力精听",
     shadowing: "跟读评分",
+    review: "单元复习",
   };
   return map[type || ""] || "场景练习";
 }

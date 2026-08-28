@@ -75,14 +75,16 @@ onShow(async () => {
 function onItemTap(item: TodayItem) {
   if (item.kind === "review") {
     goReview();
-  } else if (item.kind === "scenario" && item.scenarioId) {
-    // 按当前课时类型路由：对话实战 / 听力精听 / 跟读评分
+  } else if (item.kind === "scenario" && (item.scenarioId || item.lessonType === "review")) {
+    // 按当前课时类型路由：对话实战 / 听力精听 / 跟读评分 / 单元复习
     if (item.lessonType === "listening") {
       uni.navigateTo({ url: `/pages/listen/listen?id=${item.scenarioId}` });
     } else if (item.lessonType === "shadowing") {
       uni.navigateTo({ url: `/pages/practice/shadow?id=${item.scenarioId}` });
+    } else if (item.lessonType === "review") {
+      uni.navigateTo({ url: "/pages/vocab/review" });
     } else {
-      startChat(item.scenarioId);
+      startChat(item.scenarioId as string);
     }
   } else if (item.kind === "dialog") {
     uni.switchTab({ url: "/pages/speak/hall" });

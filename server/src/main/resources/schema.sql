@@ -136,6 +136,8 @@ CREATE TABLE IF NOT EXISTS t_course (
   track       VARCHAR(32) NOT NULL,
   age_band    VARCHAR(16),
   cefr        VARCHAR(8),
+  exam_tag    VARCHAR(32),
+  months      INT DEFAULT 3,
   title_zh    VARCHAR(128),
   title_en    VARCHAR(128),
   description TEXT,
@@ -175,3 +177,5 @@ CREATE UNIQUE INDEX IF NOT EXISTS uk_lesson_progress ON t_lesson_progress (user_
 
 -- 历史库平滑迁移
 ALTER TABLE t_user_profile ADD COLUMN IF NOT EXISTS age_band VARCHAR(16);
+ALTER TABLE t_course ADD COLUMN IF NOT EXISTS exam_tag VARCHAR(32);
+ALTER TABLE t_course ADD COLUMN IF NOT EXISTS months INT DEFAULT 3;
