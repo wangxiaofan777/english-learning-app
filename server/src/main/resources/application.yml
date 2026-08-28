@@ -1,0 +1,59 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: lingo-server
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:postgres}
+  sql:
+    init:
+      mode: always
+  jackson:
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: assign_id
+
+---
+# 默认：PostgreSQL（docker-compose 提供）
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:lingo}
+    username: ${DB_USER:lingo}
+    password: ${DB_PASSWORD:lingo123}
+
+---
+# 本地快速体验：内存 H2，无需 Docker
+spring:
+  config:
+    activate:
+      on-profile: h2
+  datasource:
+    url: jdbc:h2:mem:lingo;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+lingo:
+  jwt-secret: ${JWT_SECRET:lingo-dev-secret-key-please-change-me-to-32-bytes-at-least}
+  admin-token: ${ADMIN_TOKEN:dev-admin}
+  wx:
+    # 留空时 wechat login 走 dev 兜底（不校验微信）
+    appid: ${WX_APPID:}
+    secret: ${WX_SECRET:}
+  llm:
+    # 留空时对话走内置 Mock，无需任何密钥即可完整体验
+    base-url: ${LLM_BASE_URL:}
+    api-key: ${LLM_API_KEY:}
+    model: ${LLM_MODEL:deepseek-chat}
+    temperature: 0.7

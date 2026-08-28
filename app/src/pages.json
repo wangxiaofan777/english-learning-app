@@ -1,0 +1,78 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": { "navigationBarTitleText": "今天" }
+    },
+    {
+      "path": "pages/speak/hall",
+      "style": { "navigationBarTitleText": "练口语" }
+    },
+    {
+      "path": "pages/vocab/index",
+      "style": { "navigationBarTitleText": "词库" }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": { "navigationBarTitleText": "我的" }
+    },
+    {
+      "path": "pages/login/login",
+      "style": { "navigationBarTitleText": "登录", "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/onboarding/onboarding",
+      "style": { "navigationBarTitleText": "定制学习计划", "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/placement/placement",
+      "style": { "navigationBarTitleText": "快速测评" }
+    },
+    {
+      "path": "pages/speak/chat",
+      "style": { "navigationBarTitleText": "口语对话" }
+    },
+    {
+      "path": "pages/vocab/review",
+      "style": { "navigationBarTitleText": "复习" }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "Lingo 英语陪练",
+    "navigationBarBackgroundColor": "#F6F7F9",
+    "backgroundColor": "#F6F7F9"
+  },
+  "tabBar": {
+    "color": "#9CA3AF",
+    "selectedColor": "#16A34A",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "今天",
+        "iconPath": "static/tab-today.png",
+        "selectedIconPath": "static/tab-today-active.png"
+      },
+      {
+        "pagePath": "pages/speak/hall",
+        "text": "练口语",
+        "iconPath": "static/tab-speak.png",
+        "selectedIconPath": "static/tab-speak-active.png"
+      },
+      {
+        "pagePath": "pages/vocab/index",
+        "text": "词库",
+        "iconPath": "static/tab-vocab.png",
+        "selectedIconPath": "static/tab-vocab-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "static/tab-mine.png",
+        "selectedIconPath": "static/tab-mine-active.png"
+      }
+    ]
+  }
+}

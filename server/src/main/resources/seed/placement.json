@@ -1,0 +1,134 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "type": "vocab",
+      "cefr": "A1",
+      "stem": "「苹果」对应的英文是？",
+      "options": [
+        { "key": "A", "text": "apple" },
+        { "key": "B", "text": "banana" },
+        { "key": "C", "text": "orange" },
+        { "key": "D", "text": "grape" }
+      ],
+      "answer": "A"
+    },
+    {
+      "id": "q2",
+      "type": "cloze",
+      "cefr": "A1",
+      "stem": "I ___ a student.",
+      "options": [
+        { "key": "A", "text": "am" },
+        { "key": "B", "text": "is" },
+        { "key": "C", "text": "are" },
+        { "key": "D", "text": "be" }
+      ],
+      "answer": "A"
+    },
+    {
+      "id": "q3",
+      "type": "vocab",
+      "cefr": "A2",
+      "stem": "「提前预订（酒店/餐厅）」最合适的动词是？",
+      "options": [
+        { "key": "A", "text": "order" },
+        { "key": "B", "text": "book" },
+        { "key": "C", "text": "buy" },
+        { "key": "D", "text": "take" }
+      ],
+      "answer": "B"
+    },
+    {
+      "id": "q4",
+      "type": "cloze",
+      "cefr": "A2",
+      "stem": "She ___ to work by bus every day.",
+      "options": [
+        { "key": "A", "text": "go" },
+        { "key": "B", "text": "going" },
+        { "key": "C", "text": "goes" },
+        { "key": "D", "text": "gone" }
+      ],
+      "answer": "C"
+    },
+    {
+      "id": "q5",
+      "type": "vocab",
+      "cefr": "B1",
+      "stem": "「推荐 / 建议（某物）」用哪个词？",
+      "options": [
+        { "key": "A", "text": "recommend" },
+        { "key": "B", "text": "remind" },
+        { "key": "C", "text": "record" },
+        { "key": "D", "text": "recover" }
+      ],
+      "answer": "A"
+    },
+    {
+      "id": "q6",
+      "type": "cloze",
+      "cefr": "B1",
+      "stem": "If it ___ tomorrow, we will stay at home.",
+      "options": [
+        { "key": "A", "text": "will rain" },
+        { "key": "B", "text": "rains" },
+        { "key": "C", "text": "rained" },
+        { "key": "D", "text": "is raining" }
+      ],
+      "answer": "B"
+    },
+    {
+      "id": "q7",
+      "type": "vocab",
+      "cefr": "B2",
+      "stem": "「妥协，让步」对应的词是？",
+      "options": [
+        { "key": "A", "text": "commitment" },
+        { "key": "B", "text": "component" },
+        { "key": "C", "text": "compromise" },
+        { "key": "D", "text": "comparison" }
+      ],
+      "answer": "C"
+    },
+    {
+      "id": "q8",
+      "type": "cloze",
+      "cefr": "B2",
+      "stem": "I wish I ___ more time to travel.",
+      "options": [
+        { "key": "A", "text": "have" },
+        { "key": "B", "text": "had" },
+        { "key": "C", "text": "will have" },
+        { "key": "D", "text": "would have" }
+      ],
+      "answer": "B"
+    },
+    {
+      "id": "q9",
+      "type": "vocab",
+      "cefr": "C1",
+      "stem": "「权衡，取舍（trade-off）」在句中：Working remotely is a ___ between freedom and focus.",
+      "options": [
+        { "key": "A", "text": "trade-off" },
+        { "key": "B", "text": "trade-in" },
+        { "key": "C", "text": "turnout" },
+        { "key": "D", "text": "turnover" }
+      ],
+      "answer": "A"
+    },
+    {
+      "id": "q10",
+      "type": "cloze",
+      "cefr": "C1",
+      "stem": "Not only ___ the exam, but she also got the top score.",
+      "options": [
+        { "key": "A", "text": "she passed" },
+        { "key": "B", "text": "did she pass" },
+        { "key": "C", "text": "she did pass" },
+        { "key": "D", "text": "passed she" }
+      ],
+      "answer": "B"
+    }
+  ]
+}

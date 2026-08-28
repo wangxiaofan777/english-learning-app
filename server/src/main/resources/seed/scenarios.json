@@ -1,0 +1,304 @@
+{
+  "scenarios": [
+    {
+      "track": "daily",
+      "topic": "咖啡店点单",
+      "titleZh": "咖啡店点单",
+      "titleEn": "Ordering Coffee",
+      "cefr": "A2",
+      "roleSetting": "You are a friendly barista at a busy coffee shop. You greet customers warmly, suggest drinks, and confirm the order and size.",
+      "introZh": "学会在咖啡店点一杯专属咖啡：说需求、选杯型、付款。",
+      "lines": [
+        { "speaker": "ai", "en": "Hi there! Welcome to Sunny Coffee. What can I get started for you today?", "zh": "你好！欢迎来到 Sunny Coffee。今天想喝点什么？" },
+        { "speaker": "user", "en": "I'd like a latte, please.", "zh": "我想要一杯拿铁，谢谢。" },
+        { "speaker": "ai", "en": "Great choice! What size would you like — small, medium, or large?", "zh": "好选择！您要什么杯型——小杯、中杯还是大杯？" },
+        { "speaker": "user", "en": "A medium one. Could you make it with oat milk?", "zh": "中杯。能用燕麦奶做吗？" },
+        { "speaker": "ai", "en": "Sure, oat milk is no problem. Anything to eat with that? Our banana bread is fresh today.", "zh": "当然，燕麦奶没问题。要配点什么吃的吗？我们的香蕉面包今天是新鲜的。" },
+        { "speaker": "user", "en": "That sounds good. I'll take a slice, please.", "zh": "听起来不错，请给我来一块。" },
+        { "speaker": "ai", "en": "Perfect. That'll be six dollars fifty. For here or to go?", "zh": "好的，一共六美元五十美分。在这喝还是带走？" },
+        { "speaker": "user", "en": "To go, please. Here's my card.", "zh": "带走，谢谢。这是我的卡。" }
+      ],
+      "vocab": [
+        { "word": "latte", "phonetic": "/ˈlɑːteɪ/", "meaningZh": "拿铁咖啡", "exampleEn": "I'd like a latte with oat milk.", "exampleZh": "我要一杯燕麦奶拿铁。" },
+        { "word": "to go", "phonetic": "/tə ɡoʊ/", "meaningZh": "带走（外带）", "exampleEn": "Two coffees to go, please.", "exampleZh": "请给我两杯咖啡，带走。" },
+        { "word": "slice", "phonetic": "/slaɪs/", "meaningZh": "一片；一块", "exampleEn": "Can I get a slice of banana bread?", "exampleZh": "能给我一块香蕉面包吗？" },
+        { "word": "That'll be...", "phonetic": "/ðætl biː/", "meaningZh": "一共是……（报价格）", "exampleEn": "That'll be five dollars.", "exampleZh": "一共五美元。" }
+      ]
+    },
+    {
+      "track": "daily",
+      "topic": "问路",
+      "titleZh": "问路与指路",
+      "titleEn": "Asking for Directions",
+      "cefr": "A2",
+      "roleSetting": "You are a kind local passerby. The learner asks you for directions to the subway station and a nearby museum. Give clear, simple directions.",
+      "introZh": "在陌生城市开口问路：礼貌搭话、听懂指引、确认路线。",
+      "lines": [
+        { "speaker": "ai", "en": "Oh, you look a little lost. Do you need any help?", "zh": "哦，你看起来有点迷路了。需要帮忙吗？" },
+        { "speaker": "user", "en": "Yes, please. Could you tell me how to get to the nearest subway station?", "zh": "好的，麻烦了。请问最近的地铁站怎么走？" },
+        { "speaker": "ai", "en": "Sure. Go straight down this street for two blocks, then turn left at the bank.", "zh": "没问题。沿着这条街直走两个街区，然后在银行那里左转。" },
+        { "speaker": "user", "en": "Two blocks, then left at the bank. Is it far from here?", "zh": "两个街区然后在银行左转。离这里远吗？" },
+        { "speaker": "ai", "en": "Not at all. It's about a five-minute walk. You'll see the entrance on your right.", "zh": "不远，走路大概五分钟。你会看到入口就在右手边。" },
+        { "speaker": "user", "en": "Got it. And is there a museum around here?", "zh": "明白了。这附近有博物馆吗？" },
+        { "speaker": "ai", "en": "Yes, the City Museum is right next to the station. You can't miss it.", "zh": "有，城市博物馆就在地铁站旁边。你一眼就能看到。" },
+        { "speaker": "user", "en": "Wonderful. Thank you so much for your help!", "zh": "太好了，非常感谢你的帮助！" }
+      ],
+      "vocab": [
+        { "word": "go straight", "phonetic": "/ɡoʊ streɪt/", "meaningZh": "直走", "exampleEn": "Go straight for two blocks.", "exampleZh": "直走两个街区。" },
+        { "word": "turn left", "phonetic": "/tɜːrn left/", "meaningZh": "左转", "exampleEn": "Turn left at the corner.", "exampleZh": "在路口左转。" },
+        { "word": "a five-minute walk", "phonetic": "/ə faɪv ˈmɪnɪt wɔːk/", "meaningZh": "步行五分钟", "exampleEn": "It's a five-minute walk from here.", "exampleZh": "从这里走五分钟。" },
+        { "word": "You can't miss it.", "phonetic": "/jʊ kænt mɪs ɪt/", "meaningZh": "你一眼就能看到（很好找）", "exampleEn": "The hotel is huge — you can't miss it.", "exampleZh": "那家酒店很大，你不会错过的。" }
+      ]
+    },
+    {
+      "track": "daily",
+      "topic": "餐厅点餐",
+      "titleZh": "餐厅点餐",
+      "titleEn": "Ordering at a Restaurant",
+      "cefr": "A2",
+      "roleSetting": "You are a polite waiter at a Western restaurant. Recommend dishes, ask about preferences, and take the order.",
+      "introZh": "从看菜单到下单：推荐菜、忌口说明、加单结账全流程。",
+      "lines": [
+        { "speaker": "ai", "en": "Good evening! Table for one? Right this way, please. Here's our menu.", "zh": "晚上好！一位吗？这边请。这是菜单。" },
+        { "speaker": "user", "en": "Thank you. What do you recommend here?", "zh": "谢谢。这里有什么推荐的吗？" },
+        { "speaker": "ai", "en": "Our grilled salmon is very popular, and the mushroom pasta is a favorite too.", "zh": "我们的烤三文鱼非常受欢迎，蘑菇意面也很受喜爱。" },
+        { "speaker": "user", "en": "I'll have the salmon. But I'm allergic to peanuts — does the sauce contain any?", "zh": "我要三文鱼。不过我对花生过敏——酱里有花生吗？" },
+        { "speaker": "ai", "en": "Don't worry, the sauce is peanut-free. Would you like a soup or salad to start?", "zh": "放心，酱料不含花生。开头要不要来份汤或沙拉？" },
+        { "speaker": "user", "en": "A garden salad, please. And a glass of sparkling water.", "zh": "一份田园沙拉，谢谢。再来一杯气泡水。" },
+        { "speaker": "ai", "en": "Excellent choices. I'll be right back with your drinks.", "zh": "很好的选择。我马上去给您拿饮品。" },
+        { "speaker": "user", "en": "Thanks! Oh, and could I get the salad dressing on the side?", "zh": "谢谢！哦对了，沙拉酱能放在旁边吗？" }
+      ],
+      "vocab": [
+        { "word": "recommend", "phonetic": "/ˌrekəˈmend/", "meaningZh": "推荐", "exampleEn": "What do you recommend?", "exampleZh": "你有什么推荐？" },
+        { "word": "allergic", "phonetic": "/əˈlɜːrdʒɪk/", "meaningZh": "过敏的", "exampleEn": "I'm allergic to seafood.", "exampleZh": "我对海鲜过敏。" },
+        { "word": "on the side", "phonetic": "/ɒn ðə saɪd/", "meaningZh": "分开另放（酱料）", "exampleEn": "I'll have the dressing on the side.", "exampleZh": "沙拉酱请另放。" },
+        { "word": "to start", "phonetic": "/tə stɑːrt/", "meaningZh": "作为开胃/前菜", "exampleEn": "A soup to start, please.", "exampleZh": "先来一份汤。" }
+      ]
+    },
+    {
+      "track": "daily",
+      "topic": "商店退换货",
+      "titleZh": "商店退换货",
+      "titleEn": "Returning an Item",
+      "cefr": "B1",
+      "roleSetting": "You are a patient shop assistant at an electronics store. The learner wants to return a faulty pair of headphones. Ask for the receipt and explain the policy, then offer a solution.",
+      "introZh": "有理有据地退换货：说明问题、出示凭证、争取换新或退款。",
+      "lines": [
+        { "speaker": "ai", "en": "Hello! How can I help you today?", "zh": "您好！今天有什么可以帮您？" },
+        { "speaker": "user", "en": "Hi, I'd like to return these headphones. They stopped working two days after I bought them.", "zh": "你好，我想退这副耳机。买来两天就坏了。" },
+        { "speaker": "ai", "en": "I'm sorry to hear that. Do you have the receipt with you?", "zh": "很抱歉听到这个。您带收据了吗？" },
+        { "speaker": "user", "en": "Yes, here it is. I bought them last Saturday, so it's within seven days.", "zh": "带了，在这儿。我上周六买的，还在七天之内。" },
+        { "speaker": "ai", "en": "You're right, that's within the return window. Would you like a refund or an exchange?", "zh": "没错，还在退货期内。您想退款还是换货？" },
+        { "speaker": "user", "en": "I'd prefer an exchange for the same model, please. This one might just be defective.", "zh": "我想换同一个型号。这台可能只是个别质量问题。" },
+        { "speaker": "ai", "en": "No problem. Let me grab a brand-new one and check it works before you leave.", "zh": "没问题。我去拿一台全新的，走之前帮您验一下。" },
+        { "speaker": "user", "en": "That would be great. Thanks for sorting it out so quickly.", "zh": "太好了，谢谢你这么快帮我解决。" }
+      ],
+      "vocab": [
+        { "word": "receipt", "phonetic": "/rɪˈsiːt/", "meaningZh": "收据；小票", "exampleEn": "Keep the receipt in case you need a refund.", "exampleZh": "留着收据，万一要退款。" },
+        { "word": "refund", "phonetic": "/ˈriːfʌnd/", "meaningZh": "退款", "exampleEn": "Can I get a full refund?", "exampleZh": "我可以全额退款吗？" },
+        { "word": "defective", "phonetic": "/dɪˈfektɪv/", "meaningZh": "有缺陷的；有质量问题的", "exampleEn": "The product was defective out of the box.", "exampleZh": "这个产品开箱就是坏的。" },
+        { "word": "sort out", "phonetic": "/sɔːrt aʊt/", "meaningZh": "解决（问题）", "exampleEn": "They sorted out the problem quickly.", "exampleZh": "他们很快解决了问题。" }
+      ]
+    },
+    {
+      "track": "daily",
+      "topic": "预约看医生",
+      "titleZh": "预约看医生",
+      "titleEn": "Making a Doctor's Appointment",
+      "cefr": "B1",
+      "roleSetting": "You are a clinic receptionist. The learner has a sore throat and a mild fever and wants an appointment. Offer time slots and remind them of what to bring.",
+      "introZh": "身体不适也敢打电话预约：描述症状、约时间、问清流程。",
+      "lines": [
+        { "speaker": "ai", "en": "Good morning, City Clinic. How can I help you?", "zh": "早上好，城市诊所。有什么可以帮您？" },
+        { "speaker": "user", "en": "Hello, I'd like to make an appointment to see a doctor. I've had a sore throat since yesterday.", "zh": "你好，我想预约看医生。我从昨天开始喉咙痛。" },
+        { "speaker": "ai", "en": "I see. Do you have any other symptoms, like a fever or a cough?", "zh": "了解了。还有其他症状吗，比如发烧或咳嗽？" },
+        { "speaker": "user", "en": "A mild fever, around 37.8 degrees. No cough so far.", "zh": "有点低烧，大约 37.8 度。目前没有咳嗽。" },
+        { "speaker": "ai", "en": "Understood. Dr. Miller has an opening at 2:30 this afternoon. Does that work for you?", "zh": "明白了。米勒医生今天下午两点半有空。您方便吗？" },
+        { "speaker": "user", "en": "That works. Could I come a bit earlier, say 2:00, if someone cancels?", "zh": "可以。如果有人取消，我能提前到两点吗？" },
+        { "speaker": "ai", "en": "I'll put you down as a first backup. Please bring your ID and insurance card.", "zh": "我给您记为第一个候补。请带上您的身份证件和医保卡。" },
+        { "speaker": "user", "en": "Will do. Should I take anything for the fever before I come in?", "zh": "好的。来之前需要先吃点退烧药吗？" }
+      ],
+      "vocab": [
+        { "word": "appointment", "phonetic": "/əˈpɔɪntmənt/", "meaningZh": "预约", "exampleEn": "I'd like to book an appointment.", "exampleZh": "我想约个时间。" },
+        { "word": "symptom", "phonetic": "/ˈsɪmptəm/", "meaningZh": "症状", "exampleEn": "Tell the doctor your symptoms.", "exampleZh": "把症状告诉医生。" },
+        { "word": "sore throat", "phonetic": "/sɔːr θroʊt/", "meaningZh": "喉咙痛", "exampleEn": "I have a sore throat.", "exampleZh": "我喉咙痛。" },
+        { "word": "That works.", "phonetic": "/ðæt wɜːrks/", "meaningZh": "（时间）可以，没问题", "exampleEn": "Friday at ten? That works.", "exampleZh": "周五十点？可以。" }
+      ]
+    },
+    {
+      "track": "daily",
+      "topic": "聊爱好交朋友",
+      "titleZh": "聊爱好交朋友",
+      "titleEn": "Making Friends: Talking About Hobbies",
+      "cefr": "A2",
+      "roleSetting": "You are a friendly person at a language exchange meetup. You ask about hobbies, share yours, and suggest an activity together.",
+      "introZh": "从尬聊到交朋友：聊爱好、接住话题、自然邀约。",
+      "lines": [
+        { "speaker": "ai", "en": "Hi, I don't think we've met. I'm Alex. Is this your first time at the meetup?", "zh": "嗨，我们好像没见过。我是 Alex。你是第一次来这个聚会吗？" },
+        { "speaker": "user", "en": "Yes, it is. I'm Li Ming. Nice to meet you, Alex.", "zh": "是的，第一次。我叫李明。很高兴认识你。" },
+        { "speaker": "ai", "en": "Nice to meet you too! So, what do you like doing in your free time?", "zh": "我也是！你空闲时间喜欢做什么？" },
+        { "speaker": "user", "en": "I love hiking and taking photos of mountains. What about you?", "zh": "我喜欢爬山，拍山景照片。你呢？" },
+        { "speaker": "ai", "en": "That sounds amazing! I do a bit of photography too, mostly street photos. Which trail is your favorite?", "zh": "太棒了！我也玩一点摄影，主要拍街景。你最喜欢哪条路线？" },
+        { "speaker": "user", "en": "The one near West Lake — the sunrise view is unbelievable.", "zh": "西湖附近那条——日出景色美得不可思议。" },
+        { "speaker": "ai", "en": "Now I have to see it! A few of us are planning a hike next Saturday. Would you like to join?", "zh": "那我一定要去看看！我们几个人打算下周六去徒步。你想一起来吗？" },
+        { "speaker": "user", "en": "I'd love to! Let me give you my number.", "zh": "太想去了！我给你我的电话。" }
+      ],
+      "vocab": [
+        { "word": "in my free time", "phonetic": "/ɪn maɪ friː taɪm/", "meaningZh": "在我空闲的时候", "exampleEn": "I read in my free time.", "exampleZh": "我空闲时读书。" },
+        { "word": "trail", "phonetic": "/treɪl/", "meaningZh": "（徒步/登山）路线", "exampleEn": "This trail takes two hours.", "exampleZh": "这条路线要两个小时。" },
+        { "word": "Would you like to join?", "phonetic": "/wʊd jʊ laɪk tə dʒɔɪn/", "meaningZh": "你想一起吗？（邀约）", "exampleEn": "We're playing basketball. Would you like to join?", "exampleZh": "我们在打篮球，你要一起吗？" },
+        { "word": "unbelievable", "phonetic": "/ˌʌnbɪˈliːvəbl/", "meaningZh": "难以置信的；超棒的", "exampleEn": "The view was unbelievable.", "exampleZh": "那景色美得难以置信。" }
+      ]
+    },
+    {
+      "track": "work",
+      "topic": "新同事自我介绍",
+      "titleZh": "入职自我介绍",
+      "titleEn": "Introducing Yourself to a New Team",
+      "cefr": "A2",
+      "roleSetting": "You are a warm team lead welcoming a new colleague on their first day. Ask about their background and help them feel at home.",
+      "introZh": "第一天上班不冷场：介绍背景、说明职责、自然融入团队。",
+      "lines": [
+        { "speaker": "ai", "en": "Welcome aboard! We're really glad to have you here. How was your first morning?", "zh": "欢迎加入！很高兴你来了。今天上午感觉怎么样？" },
+        { "speaker": "user", "en": "It was great, thank you. Everyone has been very friendly.", "zh": "很棒，谢谢。大家都很友好。" },
+        { "speaker": "ai", "en": "That's good to hear. Could you tell us a bit about yourself and your background?", "zh": "那很好。能简单介绍一下你自己和你的经历吗？" },
+        { "speaker": "user", "en": "Sure. I'm Wang Lei. I worked as a data analyst for three years, mostly on sales dashboards.", "zh": "好的。我叫王磊。我做了三年数据分析，主要做销售数据看板。" },
+        { "speaker": "ai", "en": "Excellent — we can definitely use those skills. What part of the work do you enjoy most?", "zh": "太好了——这些技能我们正需要。你最喜欢这份工作的哪部分？" },
+        { "speaker": "user", "en": "I enjoy turning messy numbers into clear charts that people can act on.", "zh": "我喜欢把杂乱的数据变成清晰、能指导行动的图表。" },
+        { "speaker": "ai", "en": "Perfect fit for our team. I'll pair you with Sarah this week so you can settle in.", "zh": "和我们团队很配。这周我安排 Sarah 带你，方便你熟悉环境。" },
+        { "speaker": "user", "en": "That would be really helpful. Thank you for the warm welcome!", "zh": "那太有帮助了。谢谢你的热情欢迎！" }
+      ],
+      "vocab": [
+        { "word": "welcome aboard", "phonetic": "/ˈwelkəm əˈbɔːrd/", "meaningZh": "欢迎加入（新工作/团队）", "exampleEn": "Welcome aboard — we start on Monday.", "exampleZh": "欢迎加入——我们周一开工。" },
+        { "word": "background", "phonetic": "/ˈbækɡraʊnd/", "meaningZh": "（教育/工作）背景", "exampleEn": "Tell me about your background.", "exampleZh": "说说你的背景吧。" },
+        { "word": "dashboards", "phonetic": "/ˈdæʃbɔːrdz/", "meaningZh": "数据看板", "exampleEn": "I build sales dashboards.", "exampleZh": "我做销售数据看板。" },
+        { "word": "settle in", "phonetic": "/ˈsetl ɪn/", "meaningZh": "适应新环境", "exampleEn": "It takes a month to settle in.", "exampleZh": "适应新环境大概要一个月。" }
+      ]
+    },
+    {
+      "track": "work",
+      "topic": "会上表达不同意见",
+      "titleZh": "会上礼貌表达不同意见",
+      "titleEn": "Disagreeing Politely in a Meeting",
+      "cefr": "B1",
+      "roleSetting": "You are a colleague proposing a tight two-week deadline in a project meeting. You are open to discussion when the learner pushes back politely.",
+      "introZh": "会议上敢说「我不同意」：先认可、再补充、给替代方案。",
+      "lines": [
+        { "speaker": "ai", "en": "To wrap up, I suggest we launch the new feature in two weeks. Any thoughts?", "zh": "总结一下，我建议我们两周内上线新功能。大家有什么想法？" },
+        { "speaker": "user", "en": "I see your point, but I'm worried two weeks is too tight for proper testing.", "zh": "我理解你的想法，但我担心两周时间太紧，测试不充分。" },
+        { "speaker": "ai", "en": "That's fair. The market pressure is real though — our competitor just announced theirs.", "zh": "有道理。不过市场压力确实在，竞品刚发布了他们的新功能。" },
+        { "speaker": "user", "en": "How about a middle ground? We launch a beta to a small group first, then go fully live the week after.", "zh": "要不折中一下？我们先向小范围用户发布测试版，下一周再正式上线。" },
+        { "speaker": "ai", "en": "Interesting. That could give us early feedback without delaying the whole plan. Any risks?", "zh": "有意思。这样能提前拿到反馈，又不耽误整个计划。有什么风险吗？" },
+        { "speaker": "user", "en": "Mainly engineering effort — we'd need one more developer for the beta pipeline.", "zh": "主要是人力投入——测试版流程需要多加一名开发。" },
+        { "speaker": "ai", "en": "I'll raise it with the manager. Could you draft a short plan by Thursday?", "zh": "我会跟经理提。周四前你能出个简短方案吗？" },
+        { "speaker": "user", "en": "Absolutely. I'll send it out before our next meeting.", "zh": "没问题。我会在下次会前发出来。" }
+      ],
+      "vocab": [
+        { "word": "I see your point, but...", "phonetic": "/aɪ siː jʊ pɔɪnt/", "meaningZh": "我理解你的想法，但是……（礼貌反驳）", "exampleEn": "I see your point, but the data says otherwise.", "exampleZh": "我理解你的想法，但数据不是这么说的。" },
+        { "word": "middle ground", "phonetic": "/ˈmɪdl ɡraʊnd/", "meaningZh": "折中方案", "exampleEn": "Let's find a middle ground.", "exampleZh": "我们找个折中方案吧。" },
+        { "word": "tight", "phonetic": "/taɪt/", "meaningZh": "（时间、预算）紧的", "exampleEn": "The deadline is very tight.", "exampleZh": "截止日期非常紧。" },
+        { "word": "launch", "phonetic": "/lɔːntʃ/", "meaningZh": "上线；发布", "exampleEn": "We launch the app next month.", "exampleZh": "我们下个月上线应用。" }
+      ]
+    },
+    {
+      "track": "work",
+      "topic": "跟进项目进度",
+      "titleZh": "跟进项目进度",
+      "titleEn": "Following Up on Project Progress",
+      "cefr": "B1",
+      "roleSetting": "You are a project member who has been a bit behind schedule. The learner checks in on progress. Respond honestly and agree on next steps.",
+      "introZh": "催进度不伤和气：确认进展、识别阻塞、明确下一步和时间点。",
+      "lines": [
+        { "speaker": "ai", "en": "Hey, thanks for joining. So where are we with the landing page?", "zh": "嗨，谢谢你抽时间。落地页现在进展如何？" },
+        { "speaker": "user", "en": "The design is done and approved. Development is about 70 percent complete.", "zh": "设计已经完成并通过了。开发大概完成了 70%。" },
+        { "speaker": "ai", "en": "Good to know. What's blocking the remaining 30 percent?", "zh": "了解。剩下 30% 被什么卡住了？" },
+        { "speaker": "user", "en": "Mostly waiting on the final copy from marketing. We can't test the forms without it.", "zh": "主要是在等市场的终版文案。没有文案我们没法测试表单。" },
+        { "speaker": "ai", "en": "I see. I'll nudge them today. If we get the copy by Wednesday, can we still hit Friday?", "zh": "明白了。我今天去催他们。如果周三拿到文案，周五还能完成吗？" },
+        { "speaker": "user", "en": "Yes, if we get it by Wednesday noon. I'll also prepare test data in advance.", "zh": "可以，只要周三中午前拿到。我也会提前准备测试数据。" },
+        { "speaker": "ai", "en": "Great. Let's sync again Thursday morning to confirm we're on track.", "zh": "好。周四早上我们再对一次，确认进度正常。" },
+        { "speaker": "user", "en": "Works for me. I'll send a short status update after our chat.", "zh": "我可以。聊完我发一份简短的进度更新。" }
+      ],
+      "vocab": [
+        { "word": "follow up", "phonetic": "/ˈfɒloʊ ʌp/", "meaningZh": "跟进", "exampleEn": "I'm following up on yesterday's request.", "exampleZh": "我在跟进昨天的请求。" },
+        { "word": "block / be blocked on", "phonetic": "/blɒkt/", "meaningZh": "被卡住；阻塞", "exampleEn": "We're blocked on legal approval.", "exampleZh": "我们被法务审批卡住了。" },
+        { "word": "nudge", "phonetic": "/nʌdʒ/", "meaningZh": "（委婉地）催一下", "exampleEn": "I'll nudge them about the report.", "exampleZh": "我去提醒他们一下报告的事。" },
+        { "word": "on track", "phonetic": "/ɒn træk/", "meaningZh": "进度正常；在正轨上", "exampleEn": "The project is on track for June.", "exampleZh": "项目正按计划六月推进。" }
+      ]
+    },
+    {
+      "track": "work",
+      "topic": "电话会议听不清",
+      "titleZh": "电话会议：请对方重复与确认",
+      "titleEn": "Asking Someone to Repeat on a Call",
+      "cefr": "B1",
+      "roleSetting": "You are an international colleague on a slightly noisy conference call. You speak fast; respond patiently when the learner asks you to repeat or confirm.",
+      "introZh": "听不清不慌：礼貌请重复、确认关键信息、避免开错会。",
+      "lines": [
+        { "speaker": "ai", "en": "Hi, can everyone hear me okay? Great. So, I've shared the updated numbers with the team.", "zh": "嗨，大家都能听到吗？很好。我已经把更新后的数据发给团队了。" },
+        { "speaker": "user", "en": "Sorry, you're breaking up a little. Could you repeat the last part?", "zh": "抱歉，你那边声音断断续续的。能重复一下最后那部分吗？" },
+        { "speaker": "ai", "en": "Sure, no problem. I said I've shared the updated sales numbers in the group chat.", "zh": "当然可以。我说的是，我已经把更新后的销售数据发到群里了。" },
+        { "speaker": "user", "en": "Got it, thanks. Just to confirm — the numbers are final, or still draft?", "zh": "收到，谢谢。确认一下——数据是终版还是草稿？" },
+        { "speaker": "ai", "en": "Still a draft. Finance will sign off on Friday, and then they're final.", "zh": "还是草稿。财务周五确认，之后就是终版。" },
+        { "speaker": "user", "en": "Understood. And could you speak a little slower? The line isn't great on my end.", "zh": "明白了。你能稍微说慢一点吗？我这边信号不太好。" },
+        { "speaker": "ai", "en": "Of course. I'll also write the key points in the chat as we go.", "zh": "当然。我边讲边把要点写在聊天区。" },
+        { "speaker": "user", "en": "That would be really helpful. Thanks for being patient with my connection.", "zh": "那太有帮助了。谢谢你体谅我的网络状况。" }
+      ],
+      "vocab": [
+        { "word": "You're breaking up.", "phonetic": "/jʊr ˈbreɪkɪŋ ʌp/", "meaningZh": "（信号）断断续续", "exampleEn": "Sorry, you're breaking up — say that again?", "exampleZh": "抱歉，你声音断断续续的——再说一遍？" },
+        { "word": "Just to confirm", "phonetic": "/dʒʌst tə kənˈfɜːrm/", "meaningZh": "确认一下（关键信息）", "exampleEn": "Just to confirm, the meeting is at 3?", "exampleZh": "确认一下，会议是三点吗？" },
+        { "word": "sign off", "phonetic": "/saɪn ɒf/", "meaningZh": "签字确认；批准", "exampleEn": "The boss signed off on the budget.", "exampleZh": "老板批准了预算。" },
+        { "word": "on my end", "phonetic": "/ɒn maɪ end/", "meaningZh": "在我这边", "exampleEn": "The file opens fine on my end.", "exampleZh": "文件在我这边打开正常。" }
+      ]
+    },
+    {
+      "track": "work",
+      "topic": "向老板请假",
+      "titleZh": "向老板请假",
+      "titleEn": "Requesting Time Off",
+      "cefr": "B1",
+      "roleSetting": "You are a reasonable but busy manager. The learner asks for three days off next month. Ask about coverage and approve when the plan is sensible.",
+      "introZh": "请假也专业：说明事由、安排交接、给老板吃定心丸。",
+      "lines": [
+        { "speaker": "ai", "en": "Hey, come in. You wanted to talk about something?", "zh": "嘿，进来吧。你说有事要谈？" },
+        { "speaker": "user", "en": "Yes. I'd like to request three days off from the 12th to the 14th of next month, if possible.", "zh": "是的。如果可以的话，我想请下个月 12 号到 14 号三天假。" },
+        { "speaker": "ai", "en": "What's the occasion, if you don't mind me asking?", "zh": "方便问一下是什么事由吗？" },
+        { "speaker": "user", "en": "My sister is getting married — it's a family event I really can't miss.", "zh": "我妹妹要结婚了——这个家庭大事我实在不能缺席。" },
+        { "speaker": "ai", "en": "Congratulations to her! The 12th is right before our release, though. How will you handle the handover?", "zh": "恭喜她！不过 12 号就在发布之前。交接你怎么安排？" },
+        { "speaker": "user", "en": "I'll finish my part by the 10th and prepare a handover doc. Zhang Wei can cover urgent issues.", "zh": "我会在 10 号前完成我的部分并写好交接文档。紧急事项由张伟处理。" },
+        { "speaker": "ai", "en": "That sounds solid. Go ahead and file the request, and keep me posted on the release prep.", "zh": "听起来很稳妥。去提流程吧，发布准备的事随时同步我。" },
+        { "speaker": "user", "en": "Will do. Thank you so much — I really appreciate it.", "zh": "好的，非常感谢！" }
+      ],
+      "vocab": [
+        { "word": "request time off", "phonetic": "/rɪˈkwest taɪm ɒf/", "meaningZh": "申请休假", "exampleEn": "I'd like to request time off next week.", "exampleZh": "我想申请下周休假。" },
+        { "word": "handover", "phonetic": "/ˈhændoʊvər/", "meaningZh": "工作交接", "exampleEn": "I'll write a handover document.", "exampleZh": "我会写一份交接文档。" },
+        { "word": "cover for someone", "phonetic": "/ˈkʌvər fɔːr/", "meaningZh": "替某人顶班/处理", "exampleEn": "Who will cover for you?", "exampleZh": "谁替你顶班？" },
+        { "word": "keep someone posted", "phonetic": "/kiːp ˈpoʊstɪd/", "meaningZh": "随时向某人同步进展", "exampleEn": "I'll keep you posted on the progress.", "exampleZh": "进展我会随时同步你。" }
+      ]
+    },
+    {
+      "track": "work",
+      "topic": "面试：介绍优势",
+      "titleZh": "英文面试：介绍你的优势",
+      "titleEn": "Job Interview: Talking About Your Strengths",
+      "cefr": "B2",
+      "roleSetting": "You are a professional interviewer at a tech company. Ask the learner about their strengths and a concrete example, then probe deeper with follow-up questions.",
+      "introZh": "面试高频题：优势+实例，用 STAR 结构让回答有说服力。",
+      "lines": [
+        { "speaker": "ai", "en": "Thanks for coming in today. To start, could you tell me a little about yourself?", "zh": "感谢你今天来面试。首先，能简单介绍一下你自己吗？" },
+        { "speaker": "user", "en": "Of course. I'm a product manager with five years of experience in B2B software, mostly in growth.", "zh": "当然。我是一名产品经理，在 B2B 软件领域有五年经验，主要做增长方向。" },
+        { "speaker": "ai", "en": "Great. What would you say is your greatest strength?", "zh": "很好。你认为自己最大的优势是什么？" },
+        { "speaker": "user", "en": "I'd say data-driven decision making. For example, at my last company I redesigned our onboarding flow based on funnel data, and activation rose by 18 percent.", "zh": "我觉得是数据驱动的决策。比如在上一家公司，我根据漏斗数据重构了新手引导流程，激活率提升了 18%。" },
+        { "speaker": "ai", "en": "Impressive. What was the biggest challenge while making that change?", "zh": "很亮眼。做这个改动时最大的挑战是什么？" },
+        { "speaker": "user", "en": "Getting the engineering team on board — I built a small prototype first to show the impact before requesting full resources.", "zh": "让工程团队认可。我先做了一个小原型展示效果，再去申请完整资源。" },
+        { "speaker": "ai", "en": "Smart approach. How do you usually handle disagreements with stakeholders?", "zh": "聪明的做法。你通常怎么处理与利益相关方的分歧？" },
+        { "speaker": "user", "en": "I listen first, then align on the goal — most conflicts shrink once we agree on what success looks like.", "zh": "先倾听，再对齐目标——一旦我们对「什么算成功」达成一致，大部分分歧都会变小。" }
+      ],
+      "vocab": [
+        { "word": "strength", "phonetic": "/streŋθ/", "meaningZh": "优势；长处", "exampleEn": "My greatest strength is persistence.", "exampleZh": "我最大的优势是坚持。" },
+        { "word": "data-driven", "phonetic": "/ˈdeɪtə ˈdrɪvn/", "meaningZh": "数据驱动的", "exampleEn": "We make data-driven decisions here.", "exampleZh": "我们在这里做数据驱动的决策。" },
+        { "word": "get someone on board", "phonetic": "/ɡet ˈsʌmwʌn ɒn bɔːrd/", "meaningZh": "让某人支持/加入", "exampleEn": "I got the team on board with the plan.", "exampleZh": "我让团队认可了这个计划。" },
+        { "word": "align on", "phonetic": "/əˈlaɪn ɒn/", "meaningZh": "就……达成一致", "exampleEn": "Let's align on the goals first.", "exampleZh": "我们先对齐目标。" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lingo-postgres
+    environment:
+      POSTGRES_DB: lingo
+      POSTGRES_USER: lingo
+      POSTGRES_PASSWORD: lingo123
+    ports:
+      - "5432:5432"
+    volumes:
+      - lingo-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lingo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: lingo-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - lingo-redisdata:/data
+
+volumes:
+  lingo-pgdata:
+  lingo-redisdata:

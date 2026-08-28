@@ -1,0 +1,16 @@
+# Java
+server/target/
+*.class
+
+# Node / uni-app
+app/node_modules/
+app/dist/
+app/unpackage/
+app/.hbuilderx/
+
+# Env & IDE
+.env
+*.iml
+.idea/
+.vscode/
+.DS_Store

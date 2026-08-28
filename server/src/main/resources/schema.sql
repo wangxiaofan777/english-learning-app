@@ -1,0 +1,131 @@
+-- Lingo schema (PostgreSQL / H2 PostgreSQL-mode compatible)
+CREATE TABLE IF NOT EXISTS t_user (
+  id         BIGINT PRIMARY KEY,
+  open_id    VARCHAR(64),
+  union_id   VARCHAR(64),
+  phone      VARCHAR(20),
+  nickname   VARCHAR(64),
+  avatar     VARCHAR(255),
+  is_guest   SMALLINT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_user_open_id ON t_user (open_id);
+
+CREATE TABLE IF NOT EXISTS t_user_profile (
+  id               BIGINT PRIMARY KEY,
+  user_id          BIGINT NOT NULL,
+  goal_track       VARCHAR(32),
+  daily_minutes    INT DEFAULT 15,
+  cefr_level       VARCHAR(8),
+  weak_tags        TEXT,
+  onboarding_step  VARCHAR(16) DEFAULT 'goal',
+  streak_days      INT DEFAULT 0,
+  last_study_date  VARCHAR(10),
+  created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_profile_user ON t_user_profile (user_id);
+
+CREATE TABLE IF NOT EXISTS t_scenario (
+  id           BIGINT PRIMARY KEY,
+  track        VARCHAR(32) NOT NULL,
+  topic        VARCHAR(64),
+  title_zh     VARCHAR(128),
+  title_en     VARCHAR(128),
+  cefr         VARCHAR(8),
+  role_setting TEXT,
+  intro_zh     VARCHAR(255),
+  source       VARCHAR(16) DEFAULT 'seed',
+  status       VARCHAR(16) DEFAULT 'published',
+  sort_no      INT DEFAULT 0,
+  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_scenario_track ON t_scenario (track);
+
+CREATE TABLE IF NOT EXISTS t_scenario_line (
+  id          BIGINT PRIMARY KEY,
+  scenario_id BIGINT NOT NULL,
+  idx         INT,
+  speaker     VARCHAR(16),
+  en          TEXT,
+  zh          TEXT,
+  audio_url   VARCHAR(255)
+);
+CREATE INDEX IF NOT EXISTS idx_line_scenario ON t_scenario_line (scenario_id);
+
+CREATE TABLE IF NOT EXISTS t_scenario_vocab (
+  id          BIGINT PRIMARY KEY,
+  scenario_id BIGINT NOT NULL,
+  word        VARCHAR(64),
+  phonetic    VARCHAR(64),
+  meaning_zh  VARCHAR(255),
+  example_en  TEXT,
+  example_zh  TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_svocab_scenario ON t_scenario_vocab (scenario_id);
+
+CREATE TABLE IF NOT EXISTS t_conversation (
+  id           BIGINT PRIMARY KEY,
+  user_id      BIGINT NOT NULL,
+  scenario_id  BIGINT,
+  status       VARCHAR(16) DEFAULT 'active',
+  ai_summary   TEXT,
+  coach_json   TEXT,
+  msg_count    INT DEFAULT 0,
+  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_conv_user ON t_conversation (user_id);
+
+CREATE TABLE IF NOT EXISTS t_message (
+  id              BIGINT PRIMARY KEY,
+  conversation_id BIGINT NOT NULL,
+  idx             INT,
+  role            VARCHAR(16),
+  content         TEXT,
+  feedback_json   TEXT,
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_msg_conv ON t_message (conversation_id);
+
+CREATE TABLE IF NOT EXISTS t_vocab_entry (
+  id             BIGINT PRIMARY KEY,
+  user_id        BIGINT NOT NULL,
+  word           VARCHAR(64) NOT NULL,
+  phonetic       VARCHAR(64),
+  meaning_zh     VARCHAR(255),
+  example_en     TEXT,
+  example_zh     TEXT,
+  source         VARCHAR(24),
+  scenario_id    BIGINT,
+  fsrs_state     VARCHAR(16) DEFAULT 'new',
+  fsrs_stability DOUBLE PRECISION,
+  fsrs_difficulty DOUBLE PRECISION,
+  fsrs_reps      INT DEFAULT 0,
+  fsrs_lapses    INT DEFAULT 0,
+  due_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_review_at TIMESTAMP,
+  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_vocab_user_word ON t_vocab_entry (user_id, word);
+CREATE INDEX IF NOT EXISTS idx_vocab_due ON t_vocab_entry (user_id, due_at);
+
+CREATE TABLE IF NOT EXISTS t_review_log (
+  id          BIGINT PRIMARY KEY,
+  user_id     BIGINT NOT NULL,
+  vocab_id    BIGINT NOT NULL,
+  rating      INT,
+  stability   DOUBLE PRECISION,
+  difficulty  DOUBLE PRECISION,
+  reviewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS t_study_log (
+  id         BIGINT PRIMARY KEY,
+  user_id    BIGINT NOT NULL,
+  study_date VARCHAR(10),
+  kind       VARCHAR(16),
+  minutes    INT DEFAULT 0,
+  count      INT DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_study_user_date ON t_study_log (user_id, study_date);
