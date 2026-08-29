@@ -1,13 +1,13 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: lingo-postgres
+    container_name: talkbuddy-postgres
     environment:
       POSTGRES_DB: lingo
       POSTGRES_USER: lingo
       POSTGRES_PASSWORD: lingo123
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - lingo-pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -18,11 +18,42 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: lingo-redis
+    container_name: talkbuddy-redis
     ports:
       - "6379:6379"
     volumes:
       - lingo-redisdata:/data
+
+  server:
+    build: ./server
+    container_name: talkbuddy-server
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: lingo
+      DB_USER: lingo
+      DB_PASSWORD: lingo123
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-qwen3.7-flash}
+      JWT_SECRET: ${JWT_SECRET:-talkbuddy-dev-secret-key-please-change-32-bytes!}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  web:
+    build: ./app
+    container_name: talkbuddy-web
+    depends_on:
+      - server
+    ports:
+      - "8088:80"
+    restart: unless-stopped
 
 volumes:
   lingo-pgdata:

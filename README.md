@@ -1,4 +1,4 @@
-# Lingo 英语陪练（工作名未定）
+# 英语搭子 TalkBuddy
 
 按你的目标定制的 AI 英语陪练：微信小程序 + iOS/Android App + H5，一套代码多端（uni-app）。
 Spring Boot 3 后端，零配置即可完整体验（内置 Mock LLM 与 12 个精编场景）。

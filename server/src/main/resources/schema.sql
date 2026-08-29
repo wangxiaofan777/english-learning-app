@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS t_user (
   phone      VARCHAR(20),
   nickname   VARCHAR(64),
   avatar     VARCHAR(255),
-  is_guest   SMALLINT DEFAULT 0,
+  is_guest   BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE UNIQUE INDEX IF NOT EXISTS uk_user_open_id ON t_user (open_id);
@@ -65,17 +65,29 @@ CREATE TABLE IF NOT EXISTS t_scenario_vocab (
 CREATE INDEX IF NOT EXISTS idx_svocab_scenario ON t_scenario_vocab (scenario_id);
 
 CREATE TABLE IF NOT EXISTS t_conversation (
-  id           BIGINT PRIMARY KEY,
-  user_id      BIGINT NOT NULL,
-  scenario_id  BIGINT,
-  status       VARCHAR(16) DEFAULT 'active',
-  ai_summary   TEXT,
-  coach_json   TEXT,
-  msg_count    INT DEFAULT 0,
-  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id            BIGINT PRIMARY KEY,
+  user_id       BIGINT NOT NULL,
+  scenario_id   BIGINT,
+  mode          VARCHAR(16) DEFAULT 'scene',
+  companion_key VARCHAR(32),
+  status        VARCHAR(16) DEFAULT 'active',
+  ai_summary    TEXT,
+  coach_json    TEXT,
+  msg_count     INT DEFAULT 0,
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_conv_user ON t_conversation (user_id);
+
+-- AI 陪练的长期记忆：每个用户 × 每个陪练人设一份 JSON 事实清单
+CREATE TABLE IF NOT EXISTS t_companion_memory (
+  id            BIGINT PRIMARY KEY,
+  user_id       BIGINT NOT NULL,
+  companion_key VARCHAR(32) NOT NULL,
+  memory_json   TEXT,
+  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_companion_memory ON t_companion_memory (user_id, companion_key);
 
 CREATE TABLE IF NOT EXISTS t_message (
   id              BIGINT PRIMARY KEY,
@@ -183,3 +195,6 @@ ALTER TABLE t_user_profile ADD COLUMN IF NOT EXISTS xp INT DEFAULT 0;
 ALTER TABLE t_study_log ADD COLUMN IF NOT EXISTS xp INT DEFAULT 0;
 ALTER TABLE t_course ADD COLUMN IF NOT EXISTS exam_tag VARCHAR(32);
 ALTER TABLE t_course ADD COLUMN IF NOT EXISTS months INT DEFAULT 3;
+ALTER TABLE t_user ALTER COLUMN is_guest DROP DEFAULT;
+ALTER TABLE t_user ALTER COLUMN is_guest SET DATA TYPE BOOLEAN USING is_guest::int::boolean;
+ALTER TABLE t_user ALTER COLUMN is_guest SET DEFAULT FALSE;

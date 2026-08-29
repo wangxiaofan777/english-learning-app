@@ -1,5 +1,5 @@
 {
-  "name": "Lingo 英语陪练",
+  "name": "英语搭子 TalkBuddy",
   "appid": "",
   "description": "按你的目标定制的 AI 英语陪练",
   "versionName": "0.1.0",
@@ -45,7 +45,7 @@
     }
   },
   "h5": {
-    "title": "Lingo 英语陪练",
+    "title": "英语搭子 TalkBuddy",
     "router": {
       "mode": "hash"
     }

@@ -56,7 +56,7 @@ function draw() {
   // 品牌行
   ctx.setFillStyle("#dcfce7");
   ctx.setFontSize(12);
-  ctx.fillText("Lingo · AI 英语陪练", 24, 34);
+  ctx.fillText("英语搭子 · AI 英语陪练", 24, 34);
 
   // 主标语
   ctx.setFillStyle("#ffffff");

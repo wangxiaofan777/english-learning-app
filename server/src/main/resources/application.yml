@@ -21,6 +21,20 @@ mybatis-plus:
     db-config:
       id-type: assign_id
 
+lingo:
+  jwt-secret: ${JWT_SECRET:lingo-dev-secret-key-please-change-me-to-32-bytes-at-least}
+  admin-token: ${ADMIN_TOKEN:dev-admin}
+  wx:
+    # 留空时 wechat login 走 dev 兜底（不校验微信）
+    appid: ${WX_APPID:}
+    secret: ${WX_SECRET:}
+  llm:
+    # 留空时对话走内置 Mock，无需任何密钥即可完整体验
+    base-url: ${LLM_BASE_URL:}
+    api-key: ${LLM_API_KEY:}
+    model: ${LLM_MODEL:deepseek-chat}
+    temperature: 0.7
+
 ---
 # 默认：PostgreSQL（docker-compose 提供）
 spring:
@@ -43,17 +57,3 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
-
-lingo:
-  jwt-secret: ${JWT_SECRET:lingo-dev-secret-key-please-change-me-to-32-bytes-at-least}
-  admin-token: ${ADMIN_TOKEN:dev-admin}
-  wx:
-    # 留空时 wechat login 走 dev 兜底（不校验微信）
-    appid: ${WX_APPID:}
-    secret: ${WX_SECRET:}
-  llm:
-    # 留空时对话走内置 Mock，无需任何密钥即可完整体验
-    base-url: ${LLM_BASE_URL:}
-    api-key: ${LLM_API_KEY:}
-    model: ${LLM_MODEL:deepseek-chat}
-    temperature: 0.7
