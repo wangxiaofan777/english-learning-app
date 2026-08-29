@@ -3,7 +3,7 @@
 按你的目标定制的 AI 英语陪练：微信小程序 + iOS/Android App + H5，一套代码多端（uni-app）。
 Spring Boot 3 后端，零配置即可完整体验（内置 Mock LLM 与 12 个精编场景）。
 
-产品设计文档见 [docs/product-design.md](docs/product-design.md)，API 契约见 [docs/api.md](docs/api.md)，**上线手册（云选型 / 备案 / 小程序与 App 发布全流程）见 [docs/launch-guide.md](docs/launch-guide.md)**。
+产品设计文档见 [docs/product-design.md](docs/product-design.md)，API 契约见 [docs/api.md](docs/api.md)，**上线手册（云选型 / 备案 / 小程序与 App 发布全流程）见 [docs/launch-guide.md](docs/launch-guide.md)**，**上线后的日常运维（发版 / 备份恢复 / 密钥轮换 / 故障排查 / 内容运营 / 数据查询）见 [docs/operations.md](docs/operations.md)**。
 
 ## 项目结构
 

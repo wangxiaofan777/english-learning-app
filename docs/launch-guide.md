@@ -239,6 +239,8 @@ docker compose up -d --build
 
 ### Phase 5 · 上线后运维（持续）
 
+> 本节只列清单；**日常操作细节（发版流程、备份恢复命令、密钥轮换、故障排查 Runbook、内容运营 SOP、运营 SQL）见 [operations.md](operations.md)**。
+
 | 事项 | 做法 | 频率 |
 | --- | --- | --- |
 | 数据库备份 | cron `pg_dump` + 传 OSS（§3.1 命令） | 每日，保留 14 天 |
