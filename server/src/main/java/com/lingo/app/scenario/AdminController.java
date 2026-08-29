@@ -4,6 +4,8 @@ import com.lingo.app.common.ApiException;
 import com.lingo.app.common.ApiResponse;
 import com.lingo.app.common.LingoProperties;
 import jakarta.validation.constraints.NotBlank;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,7 +73,11 @@ public class AdminController {
   }
 
   private void checkToken(String token) {
-    if (token == null || !token.equals(props.getAdminToken())) {
+    String expected = props.getAdminToken() == null ? "" : props.getAdminToken();
+    boolean ok = !expected.isBlank() && token != null
+        && MessageDigest.isEqual(token.getBytes(StandardCharsets.UTF_8),
+            expected.getBytes(StandardCharsets.UTF_8));
+    if (!ok) {
       throw ApiException.unauthorized("admin token 无效");
     }
   }

@@ -22,12 +22,11 @@ import type {
   VocabEntry,
 } from "./types";
 
-// H5 走 vite 代理（/api → localhost:8080），小程序/App 直连后端
-// #ifdef H5
-const BASE_URL = "";
-// #endif
+// H5 走同源 nginx 反代（/api → server:8080）；小程序/App 构建时用 VITE_API_BASE_URL 注入后端地址
+// （本地开发写在 app/.env.development，生产写在 app/.env.production，必须是 HTTPS 合法域名）
+let BASE_URL = "";
 // #ifndef H5
-const BASE_URL = "http://localhost:8080";
+BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 // #endif
 
 const TOKEN_KEY = "lingo_token";
@@ -78,7 +77,7 @@ function request<T>(method: "GET" | "POST", url: string, body?: unknown): Promis
         }
       },
       fail: (err) => {
-        uni.showToast({ title: "网络异常，请检查后端是否启动", icon: "none" });
+        uni.showToast({ title: "网络异常，请稍后重试", icon: "none" });
         reject(err);
       },
     });

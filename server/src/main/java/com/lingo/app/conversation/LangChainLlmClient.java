@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class LangChainLlmClient implements LlmClient {
 
-  private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(120);
+  private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(60);
 
   private final LingoProperties props;
   private final ObjectMapper objectMapper;
@@ -50,11 +50,23 @@ public class LangChainLlmClient implements LlmClient {
   @Override
   public String streamReply(ChatContext ctx, Consumer<String> onDelta) {
     StringBuilder full = new StringBuilder();
-    streamRequest(buildMessages(ctx), chunk -> {
+    // 首个 token 尚未发出前的瞬时失败（网络抖动、限流）自动重试一次
+    try {
+      streamRequest(buildMessages(ctx), delta(full, onDelta));
+    } catch (ApiException e) {
+      if (full.length() > 0) {
+        throw e;
+      }
+      streamRequest(buildMessages(ctx), delta(full, onDelta));
+    }
+    return full.toString();
+  }
+
+  private Consumer<String> delta(StringBuilder full, Consumer<String> onDelta) {
+    return chunk -> {
       full.append(chunk);
       onDelta.accept(chunk);
-    });
-    return full.toString();
+    };
   }
 
   @Override
@@ -111,7 +123,8 @@ public class LangChainLlmClient implements LlmClient {
   @Override
   public LlmClient.Recap recap(ChatContext ctx) {
     String system = """
-        你是英语口语教练，用中文复盘学员刚才的英语对话练习。输出 JSON（不要 markdown 代码块）：
+        你是英语口语教练，用中文复盘学员刚才的英语对话练习。输出紧凑的单行 JSON（不要 markdown 代码块，
+        字符串值里不要出现未转义的双引号，不要换行）：
         {"summary": "一句话总结练习了什么、表现如何",
          "strengths": ["优点1", "优点2", "优点3"],
          "suggestions": ["建议1", "建议2"]}""";
@@ -119,8 +132,20 @@ public class LangChainLlmClient implements LlmClient {
     for (ChatContext.HistoryMsg m : ctx.history()) {
       transcript.append(m.role().equals("user") ? "学员: " : "AI: ").append(m.content()).append("\n");
     }
-    String json = complete(List.of(Map.of("role", "system", "content", system),
-        Map.of("role", "user", "content", "场景：%s\n对话记录：\n%s".formatted(ctx.topic(), transcript))), 0.4);
+    String user = "场景：%s\n对话记录：\n%s".formatted(ctx.topic(), transcript);
+    // 模型偶发输出带未转义引号的 JSON，解析为空时重试一次
+    LlmClient.Recap recap = readRecap(complete(
+        List.of(Map.of("role", "system", "content", system),
+            Map.of("role", "user", "content", user)), 0.4));
+    if (recap.strengths().isEmpty() && recap.suggestions().isEmpty()) {
+      recap = readRecap(complete(
+          List.of(Map.of("role", "system", "content", system + "\n上次输出无法解析，请严格输出单行 JSON。"),
+              Map.of("role", "user", "content", user)), 0.2));
+    }
+    return recap;
+  }
+
+  private LlmClient.Recap readRecap(String json) {
     JsonNode node = parseJsonSafely(json);
     return new LlmClient.Recap(
         node.path("summary").asText("完成了一次对话练习"),
@@ -182,30 +207,39 @@ public class LangChainLlmClient implements LlmClient {
     }
   }
 
-  /** 一次性补全（供本类与内容生成流水线复用），返回 assistant 文本 */
+  /** 一次性补全（供本类与内容生成流水线复用），返回 assistant 文本；瞬时失败自动重试一次 */
   public String complete(List<Map<String, String>> messages, double temperature) {
-    try {
-      List<ChatMessage> chatMessages = new ArrayList<>();
-      for (Map<String, String> m : messages) {
-        String role = m.getOrDefault("role", "user");
-        String content = m.getOrDefault("content", "");
-        switch (role) {
-          case "system" -> chatMessages.add(SystemMessage.from(content));
-          case "assistant" -> chatMessages.add(AiMessage.from(content));
-          default -> chatMessages.add(UserMessage.from(content));
+    for (int attempt = 1; ; attempt++) {
+      try {
+        return doComplete(messages, temperature);
+      } catch (ApiException e) {
+        throw e;
+      } catch (Exception e) {
+        if (attempt >= 2) {
+          log.error("LLM complete error after retry", e);
+          throw ApiException.badRequest("AI 服务暂时不可用，请稍后重试");
         }
+        log.warn("LLM complete failed (attempt {}), retrying: {}", attempt, e.toString());
       }
-      ChatResponse response = completeModels
-          .computeIfAbsent(temperature, this::buildChatModel)
-          .chat(chatMessages);
-      String text = response.aiMessage().text();
-      return text == null ? "" : text;
-    } catch (ApiException e) {
-      throw e;
-    } catch (Exception e) {
-      log.error("LLM complete error", e);
-      throw ApiException.badRequest("AI 服务暂时不可用，请稍后重试");
     }
+  }
+
+  private String doComplete(List<Map<String, String>> messages, double temperature) {
+    List<ChatMessage> chatMessages = new ArrayList<>();
+    for (Map<String, String> m : messages) {
+      String role = m.getOrDefault("role", "user");
+      String content = m.getOrDefault("content", "");
+      switch (role) {
+        case "system" -> chatMessages.add(SystemMessage.from(content));
+        case "assistant" -> chatMessages.add(AiMessage.from(content));
+        default -> chatMessages.add(UserMessage.from(content));
+      }
+    }
+    ChatResponse response = completeModels
+        .computeIfAbsent(temperature, this::buildChatModel)
+        .chat(chatMessages);
+    String text = response.aiMessage().text();
+    return text == null ? "" : text;
   }
 
   // ---------- internals ----------

@@ -1,6 +1,8 @@
 package com.lingo.app.user;
 
+import com.lingo.app.common.ApiException;
 import com.lingo.app.common.ApiResponse;
+import com.lingo.app.common.LingoProperties;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
   private final AuthService authService;
+  private final LingoProperties props;
 
   @PostMapping("/guest")
   public ApiResponse<AuthService.LoginResponse> guest(@RequestBody(required = false) NicknameReq req) {
+    if (!props.isGuestEnabled()) {
+      throw ApiException.forbidden("游客登录未开放，请使用微信登录");
+    }
     String nickname = req == null ? null : req.getNickname();
     return ApiResponse.ok(authService.guestLogin(nickname));
   }

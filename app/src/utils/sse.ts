@@ -1,11 +1,9 @@
 import type { MessageView } from "./types";
 import { api, getToken } from "./api";
 
-// #ifdef H5
-const STREAM_URL = "";
-// #endif
+let STREAM_URL = "";
 // #ifndef H5
-const STREAM_URL = "http://localhost:8080";
+STREAM_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 // #endif
 
 interface StreamHandlers {

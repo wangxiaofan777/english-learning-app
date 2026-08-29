@@ -109,6 +109,7 @@ export interface ConversationDetail {
   status: string;
   msgCount: number;
   messages: MessageView[];
+  vocab: ScenarioVocab[];
 }
 
 export interface Recap {

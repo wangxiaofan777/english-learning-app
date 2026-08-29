@@ -37,7 +37,11 @@ public class AuthService {
     }
     String openId;
     if (props.getWx().getAppid() == null || props.getWx().getAppid().isBlank()) {
-      // 未配置微信 appid：开发兜底，直接用 code 派生一个稳定 openId
+      if (!props.isWxDevFallback()) {
+        log.error("WX_APPID not configured: wechat login is unavailable");
+        throw ApiException.badRequest("微信登录暂不可用，请稍后再试或使用游客体验");
+      }
+      // 未配置微信 appid 且显式开启开发兜底：直接用 code 派生一个稳定 openId（仅限本地开发）
       log.warn("WX_APPID not configured, using dev fallback for wechat login");
       openId = "wxdev_" + Integer.toHexString(code.hashCode());
     } else {

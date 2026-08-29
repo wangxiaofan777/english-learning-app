@@ -3,7 +3,7 @@
 按你的目标定制的 AI 英语陪练：微信小程序 + iOS/Android App + H5，一套代码多端（uni-app）。
 Spring Boot 3 后端，零配置即可完整体验（内置 Mock LLM 与 12 个精编场景）。
 
-产品设计文档见 [docs/product-design.md](docs/product-design.md)，API 契约见 [docs/api.md](docs/api.md)。
+产品设计文档见 [docs/product-design.md](docs/product-design.md)，API 契约见 [docs/api.md](docs/api.md)，**上线手册（云选型 / 备案 / 小程序与 App 发布全流程）见 [docs/launch-guide.md](docs/launch-guide.md)**。
 
 ## 项目结构
 
@@ -12,8 +12,8 @@ english-learning-app/
 ├── server/          # Spring Boot 3 + MyBatis-Plus 后端（Java 17）
 ├── app/             # uni-app（Vue3 + TS）前端：微信小程序 / App / H5
 ├── docs/            # 产品设计文档、API 契约
-├── scripts/         # 冒烟测试、图标生成脚本
-└── docker-compose.yml  # PostgreSQL + Redis（本地开发）
+├── scripts/         # 冒烟测试、TLS 证书生成、图标生成脚本
+└── docker-compose.yml  # 生产部署：PostgreSQL + 后端 + Nginx(H5 + API + TLS)
 ```
 
 ## 快速开始（零配置体验）
@@ -42,37 +42,22 @@ npm run dev:h5
 ### 3. 跑端到端冒烟（可选）
 
 ```bash
-bash scripts/smoke.sh   # 11 项 API 冒烟，全部 PASS 即健康
+ADMIN_TOKEN=$(grep ^ADMIN_TOKEN .env | cut -d= -f2) bash scripts/smoke.sh
+# 目标不是本机 8088 时：SMOKE_BASE=http://<host>:<port>/api/v1 ADMIN_TOKEN=... bash scripts/smoke.sh
 ```
 
 ## 正式运行（PostgreSQL + 真实 LLM）
 
-```bash
-docker compose up -d        # 启动 PostgreSQL 16 + Redis 7
-cd server && mvn spring-boot:run   # 默认 postgres profile
-```
-
-配置真实 LLM（DeepSeek / GLM / Qwen / OpenAI 等 OpenAI 兼容服务均可；所有 LLM 调用统一经 **LangChain4j** 接入，服务端不直接拼 HTTP 请求）。
-
-**方式一（推荐）：配置文件。** 复制模板并填入密钥：
+本地开发可直连 compose 里的数据库：
 
 ```bash
-cd server && cp config/local.yml.example config/local.yml
-# 编辑 config/local.yml，填入 base-url / api-key / model
+docker compose up -d postgres
+cd server && mvn spring-boot:run   # 默认 postgres profile；密钥从 config/local.yml 读取
 ```
 
-文件位置相对启动命令的工作目录（`mvn spring-boot:run` 在 `server/` 下启动即 `server/config/local.yml`；Docker 部署挂载到 `/app/config/local.yml`）。真实文件已被 `.gitignore`，不会提交。优先级：`config/local.yml` > 环境变量 > application.yml 默认值；文件里没写的键仍回落到环境变量。
+`server/config/local.yml`（不入库）承载本地私密配置：LLM 密钥、JWT_SECRET、ADMIN_TOKEN、wx-dev-fallback 等。真实 LLM（DeepSeek / GLM / Qwen / OpenAI 等 OpenAI 兼容服务均可）统一经 **LangChain4j** 接入，服务端不直接拼 HTTP 请求。
 
-**方式二：环境变量。**
-
-```bash
-export LLM_BASE_URL="https://api.deepseek.com"
-export LLM_API_KEY="sk-xxx"
-export LLM_MODEL="deepseek-chat"
-# JWT_SECRET / WX_APPID / WX_SECRET / ADMIN_TOKEN 见 .env.example
-```
-
-配置后：对话走真实大模型（LangChain4j OpenAiStreamingChatModel 流式 SSE）、admin 生成接口批量产出新场景（OpenAiChatModel 补全）。
+> 模板参考 `server/.env.example`。注意：从旧版本升级后 `local.yml` 需补 `jwt-secret` / `admin-token`，否则启动会 fail-fast（这是有意设计）。
 
 ## 微信小程序
 
@@ -92,24 +77,62 @@ App 端 v1 对话降级为非流式，语音走文本（原生语音评测为 V1
 
 ## 配置项（环境变量）
 
+Docker 部署读根目录 `.env`（模板见 `.env.example`）；裸机运行读 `server/config/local.yml` 或环境变量。**标注 [必填] 的项缺失时服务会拒绝启动**（不带默认凭据）。
+
 | 变量 | 说明 | 默认 |
 | --- | --- | --- |
-| `SPRING_PROFILES_ACTIVE` | `postgres` / `h2` | postgres |
-| `DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD` | PostgreSQL 连接 | localhost:5432/lingo |
-| `LLM_BASE_URL` `LLM_API_KEY` `LLM_MODEL` | OpenAI 兼容 LLM（经 LangChain4j 接入）；推荐放 `config/local.yml`，留空走 Mock | 空（Mock） |
-| `WX_APPID` `WX_SECRET` | 微信小程序登录；留空走 dev 兜底 | 空 |
-| `JWT_SECRET` | 登录态签名密钥（≥32 字节） | 内置 dev 值（上线必须改） |
-| `ADMIN_TOKEN` | 内容生成管理接口的令牌 | dev-admin |
+| `SPRING_PROFILES_ACTIVE` | `postgres` / `h2`（h2 仅本地体验，自动放宽 dev 开关） | postgres |
+| `DB_PASSWORD` | PostgreSQL 密码 **[必填]** | 无（缺失拒绝启动） |
+| `LLM_BASE_URL` `LLM_API_KEY` `LLM_MODEL` | OpenAI 兼容 LLM（经 LangChain4j 接入）**[必填]**；未配置且 `LLM_MOCK_ALLOWED=false` 时拒绝启动 | 无 |
+| `JWT_SECRET` | 登录态签名密钥 **[必填]**（≥32 字节随机值） | 无（缺失拒绝启动） |
+| `ADMIN_TOKEN` | 内容运营/生成接口的令牌 **[必填]** | 无（缺失拒绝启动） |
+| `GUEST_ENABLED` | 游客登录开关（`false` 时仅允许微信登录） | true |
+| `WX_APPID` `WX_SECRET` | 微信小程序登录凭据；未配置且 `WX_DEV_FALLBACK=false` 时微信登录不可用 | 空 |
+| `WX_DEV_FALLBACK` | 微信 dev 兜底（code 直接派生身份），**生产必须 false** | false |
+| `LLM_MOCK_ALLOWED` | 允许无密钥时降级 Mock LLM，**生产必须 false** | false |
+| `CORS_ALLOWED_ORIGINS` | 跨域白名单（逗号分隔）；H5 同源反代时留空即可 | 空（不限制） |
 
 ## 管理接口（内容冷启动）
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/admin/scenarios/generate \
-  -H "X-Admin-Token: dev-admin" -H "Content-Type: application/json" \
+curl -X POST http://localhost:8088/api/v1/admin/scenarios/generate \
+  -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
   -d '{"track":"daily","topic":"机场值机","cefr":"A2"}'
 ```
 
-配置 LLM 后该接口按设计文档 §7.3 的流水线生成场景（对话脚本 + 生词卡 + 校验）并入库；未配置时返回模板场景。
+配置 LLM 后该接口按设计文档 §7.3 的流水线生成场景（对话脚本 + 生词卡 + 校验）并入库；未配置时返回模板场景。浏览器版内容运营台：H5 访问 `/#/pages/admin/content`，输入 `.env` 中的 `ADMIN_TOKEN`。
+
+## 部署上线（Docker）
+
+> 云服务器选购、ICP/App 备案、小程序与 App 发布的完整流程见 **[docs/launch-guide.md](docs/launch-guide.md)**。本节只讲部署本身。
+
+```bash
+cp .env.example .env && vim .env          # 填入全部 [必填] 项
+./scripts/gen_certs.sh                    # 自签名证书（正式上线替换为 CA 证书）
+docker compose up -d --build              # 构建 postgres + server + web
+curl -k https://localhost:8443/api/v1/health
+```
+
+- 对外端口：`8443`（HTTPS 业务）、`8088`（HTTP，仅跳转到 HTTPS）；数据库与后端**不对宿主机暴露端口**
+- HTTPS：nginx 监听 443，证书挂载自 `./certs/`；正式域名上线时把 CA 签发的 `fullchain.pem` / `privkey.pem` 放进 `./certs/` 并 `docker compose restart web`
+- 日志：`docker compose logs -f server`，或落盘日志（数据卷 `lingo-logs`，按天轮转、保留 14 天）
+- 健康检查：`/api/v1/health` 含数据库探活；compose 内置 server/web/postgres healthcheck + `restart: always`
+- 限流：内置按 IP 的固定窗口限流（auth 10/分、admin 30/分、对话 60/分、其余 240/分），超限返回 429
+- 已有旧数据卷时修改 `DB_PASSWORD`：新密码只对新库生效，需同步执行
+  `docker compose exec postgres psql -U lingo -c "ALTER USER lingo PASSWORD '<新密码>';"`
+
+### 上线 checklist
+
+- [ ] `.env` 全部 `[必填]` 项已填，`ADMIN_TOKEN`/`JWT_SECRET`/`DB_PASSWORD` 为随机强值（非示例值）
+- [ ] `LLM_API_KEY` 有效且额度充足；`LLM_MOCK_ALLOWED=false`
+- [ ] `GUEST_ENABLED` 按产品决策设置；正式运营建议 `false`（仅微信登录）
+- [ ] `WX_APPID`/`WX_SECRET` 已配置，`WX_DEV_FALLBACK=false`
+- [ ] 已有正式域名与 CA 证书（Let's Encrypt 免费签发即可），替换 `./certs/`
+- [ ] 小程序后台配置 request 合法域名（`https://你的域名`），`app/src/manifest.json` 填入真实 appid
+- [ ] 小程序/App 生产构建前在 `app/.env.production` 设置 `VITE_API_BASE_URL=https://你的域名`
+- [ ] 数据库定期备份：`docker compose exec postgres pg_dump -U lingo lingo > backup_$(date +%F).sql`
+- [ ] 冒烟通过：`ADMIN_TOKEN=... bash scripts/smoke.sh`
+- [ ] CI 绿：GitHub Actions 自动跑后端测试 + 前端类型检查
 
 ## 已实现范围（对应设计文档 §6 MVP+）
 

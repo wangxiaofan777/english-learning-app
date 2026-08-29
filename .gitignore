@@ -11,6 +11,11 @@ app/.hbuilderx/
 # Env & IDE
 .env
 
+# TLS 证书与运行日志
+certs/
+server/logs/
+logs/
+
 # 本地私密配置（LLM api-key 等）
 server/config/local.yml
 config/local.yml

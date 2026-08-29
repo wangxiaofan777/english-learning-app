@@ -16,7 +16,13 @@ public class JwtUtil {
   private final SecretKey key;
 
   public JwtUtil(LingoProperties props) {
-    byte[] bytes = props.getJwtSecret().getBytes(StandardCharsets.UTF_8);
+    String secret = props.getJwtSecret();
+    if (secret == null || secret.isBlank()) {
+      throw new IllegalStateException(
+          "lingo.jwt-secret 未配置：生产环境必须通过环境变量 JWT_SECRET 或 config/local.yml 提供"
+              + "至少 32 字节的随机密钥（本地零配置体验请使用 h2 profile）");
+    }
+    byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
     if (bytes.length < 32) {
       throw new IllegalStateException("lingo.jwt-secret must be at least 32 bytes");
     }

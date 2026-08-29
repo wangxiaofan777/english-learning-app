@@ -56,7 +56,7 @@
     </template>
 
     <!-- 无任务 -->
-    <template v-else-if="phase === 'done' || phase === 'review'">
+    <template v-else-if="phase === 'empty'">
       <view class="card done-card">
         <text class="done-emoji">☕</text>
         <text class="done-title">没有待复习的词</text>
@@ -73,7 +73,7 @@ import { api } from "../../utils/api";
 import type { VocabEntry } from "../../utils/types";
 import { speak } from "../../utils/speech";
 
-const phase = ref<"loading" | "review" | "done">("loading");
+const phase = ref<"loading" | "review" | "done" | "empty">("loading");
 const cards = ref<VocabEntry[]>([]);
 const index = ref(0);
 const reveal = ref(false);
@@ -88,7 +88,7 @@ onLoad(async () => {
   const queue = await api.reviewQueue(15);
   cards.value = queue.cards;
   total.value = queue.cards.length;
-  phase.value = queue.cards.length === 0 ? "done" : "review";
+  phase.value = queue.cards.length === 0 ? "empty" : "review";
 });
 
 function pronounce(word: string) {

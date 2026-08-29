@@ -198,3 +198,7 @@ ALTER TABLE t_course ADD COLUMN IF NOT EXISTS months INT DEFAULT 3;
 ALTER TABLE t_user ALTER COLUMN is_guest DROP DEFAULT;
 ALTER TABLE t_user ALTER COLUMN is_guest SET DATA TYPE BOOLEAN USING is_guest::int::boolean;
 ALTER TABLE t_user ALTER COLUMN is_guest SET DEFAULT FALSE;
+
+-- 旧库漂移修复：t_conversation.mode / companion_key 为后加列，建表更早的数据卷需要补齐
+ALTER TABLE t_conversation ADD COLUMN IF NOT EXISTS mode VARCHAR(16) DEFAULT 'scene';
+ALTER TABLE t_conversation ADD COLUMN IF NOT EXISTS companion_key VARCHAR(32);

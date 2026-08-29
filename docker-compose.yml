@@ -1,3 +1,4 @@
+# 生产部署：所有敏感配置走 .env（缺一项都会 fail-fast，不会带默认凭据启动）
 services:
   postgres:
     image: postgres:16-alpine
@@ -5,9 +6,8 @@ services:
     environment:
       POSTGRES_DB: lingo
       POSTGRES_USER: lingo
-      POSTGRES_PASSWORD: lingo123
-    ports:
-      - "5433:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required in .env}
+    # 数据库不对宿主机暴露端口，仅在 compose 内网访问
     volumes:
       - lingo-pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -15,14 +15,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-
-  redis:
-    image: redis:7-alpine
-    container_name: talkbuddy-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - lingo-redisdata:/data
+    restart: always
 
   server:
     build: ./server
@@ -33,31 +26,50 @@ services:
       DB_PORT: 5432
       DB_NAME: lingo
       DB_USER: lingo
-      DB_PASSWORD: lingo123
-      LLM_BASE_URL: ${LLM_BASE_URL:-}
-      LLM_API_KEY: ${LLM_API_KEY:-}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required in .env}
+      LLM_BASE_URL: ${LLM_BASE_URL:?LLM_BASE_URL is required in .env}
+      LLM_API_KEY: ${LLM_API_KEY:?LLM_API_KEY is required in .env}
       LLM_MODEL: ${LLM_MODEL:-qwen-flash}
-      JWT_SECRET: ${JWT_SECRET:-talkbuddy-dev-secret-key-please-change-32-bytes!}
-      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required in .env (>=32 random bytes)}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?ADMIN_TOKEN is required in .env}
+      GUEST_ENABLED: ${GUEST_ENABLED:-true}
+      WX_DEV_FALLBACK: ${WX_DEV_FALLBACK:-false}
+      WX_APPID: ${WX_APPID:-}
+      WX_SECRET: ${WX_SECRET:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
     depends_on:
       postgres:
         condition: service_healthy
-    # LLM 密钥由配置文件管理：宿主机 server/config/local.yml → 容器 /app/config/local.yml
+    # 仅内网可达：对外统一走 web 容器的 nginx（/api/ 反代）
     volumes:
-      - ./server/config/local.yml:/app/config/local.yml:ro
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
+      - lingo-logs:/app/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/api/v1/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: always
 
   web:
     build: ./app
     container_name: talkbuddy-web
     depends_on:
-      - server
+      server:
+        condition: service_healthy
+    # 80 只做跳转与探活，业务流量走 443 TLS；证书由 scripts/gen_certs.sh 生成或替换为正式证书
     ports:
       - "8088:80"
-    restart: unless-stopped
+      - "8443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:80/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: always
 
 volumes:
   lingo-pgdata:
-  lingo-redisdata:
+  lingo-logs:

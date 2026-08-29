@@ -229,7 +229,7 @@ async function quizNext() {
   const minutes = Math.max(1, Math.round(lines.value.length / 4));
   try {
     await api.recordPractice("listening", minutes, lines.value.length + quizCorrect.value);
-    await api.completeLesson("listening", scenarioId.value, null);
+    await api.completeLesson("listening", scenarioId.value);
   } catch (e) {
     // 计时失败不打断完成页
   }

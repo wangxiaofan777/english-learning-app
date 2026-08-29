@@ -29,7 +29,11 @@ public class WxClient {
         + "&secret=" + props.getWx().getSecret()
         + "&js_code=" + code + "&grant_type=authorization_code";
     try {
-      HttpResponse<String> resp = http.send(HttpRequest.newBuilder(URI.create(url)).GET().build(),
+      HttpResponse<String> resp = http.send(
+          HttpRequest.newBuilder(URI.create(url))
+              .GET()
+              .timeout(Duration.ofSeconds(10))
+              .build(),
           HttpResponse.BodyHandlers.ofString());
       JsonNode node = objectMapper.readTree(resp.body());
       if (node.hasNonNull("openid")) {

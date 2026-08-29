@@ -73,7 +73,7 @@ public class ChatService {
         .stream().map(this::toView).toList();
   }
 
-  /** 对话详情：场景信息 + 全部消息，用于刷新后恢复聊天页 */
+  /** 对话详情：场景信息 + 全部消息 + 场景生词，用于刷新后恢复聊天页 */
   public ConversationDetail detail(Long userId, Long conversationId) {
     ConversationEntity conv = requireOwned(userId, conversationId);
     if (isCompanion(conv)) {
@@ -85,12 +85,13 @@ public class ChatService {
           p == null ? "AI Companion" : p.name(),
           profile == null ? null : profile.getCefrLevel(),
           p == null ? "" : p.tagline(),
-          conv.getStatus(), conv.getMsgCount(), messages(userId, conversationId));
+          conv.getStatus(), conv.getMsgCount(), messages(userId, conversationId), List.of());
     }
     ScenarioEntity scenario = scenarioService.require(conv.getScenarioId());
     return new ConversationDetail(conv.getId(), scenario.getId(), scenario.getTitleZh(),
         scenario.getTitleEn(), scenario.getCefr(), scenario.getRoleSetting(),
-        conv.getStatus(), conv.getMsgCount(), messages(userId, conversationId));
+        conv.getStatus(), conv.getMsgCount(), messages(userId, conversationId),
+        scenarioService.detail(scenario.getId()).vocab());
   }
 
   @Transactional
@@ -361,7 +362,8 @@ public class ChatService {
 
   public record ConversationDetail(Long id, Long scenarioId, String titleZh, String titleEn,
                                    String cefr, String roleSetting, String status, Integer msgCount,
-                                   List<MessageView> messages) {
+                                   List<MessageView> messages,
+                                   List<ScenarioService.VocabView> vocab) {
   }
 
   public record FinishResult(LlmClient.Recap recap, List<ScenarioService.VocabView> vocab) {

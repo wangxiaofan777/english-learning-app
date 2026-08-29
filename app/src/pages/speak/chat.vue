@@ -240,7 +240,9 @@ async function collect(word: string, meaningZh?: string) {
 async function finish() {
   if (!conversationId) return;
   recap.value = await api.finishConversation(conversationId);
-  detail.value.status = "finished";
+  if (detail.value) {
+    detail.value.status = "finished";
+  }
 }
 
 function closeRecap() {

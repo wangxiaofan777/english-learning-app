@@ -10,9 +10,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
   private final AuthInterceptor authInterceptor;
+  private final LingoProperties lingoProperties;
 
-  public WebConfig(AuthInterceptor authInterceptor) {
+  public WebConfig(AuthInterceptor authInterceptor, LingoProperties lingoProperties) {
     this.authInterceptor = authInterceptor;
+    this.lingoProperties = lingoProperties;
   }
 
   @Override
@@ -28,10 +30,22 @@ public class WebConfig implements WebMvcConfigurer {
 
   @Override
   public void addCorsMappings(@NonNull CorsRegistry registry) {
+    // 生产走同源 nginx 反代，不依赖 CORS；跨域来源用 CORS_ALLOWED_ORIGINS 白名单收敛
     registry.addMapping("/**")
-        .allowedOriginPatterns("*")
+        .allowedOriginPatterns(corsOriginPatterns())
         .allowedMethods("*")
         .allowedHeaders("*")
         .maxAge(3600);
+  }
+
+  private String[] corsOriginPatterns() {
+    String raw = lingoProperties.getCorsAllowedOrigins();
+    if (raw == null || raw.isBlank()) {
+      return new String[] {"*"};
+    }
+    return java.util.Arrays.stream(raw.split(","))
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .toArray(String[]::new);
   }
 }
