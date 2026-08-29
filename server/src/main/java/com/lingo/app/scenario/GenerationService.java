@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lingo.app.common.ApiException;
 import com.lingo.app.common.LingoProperties;
-import com.lingo.app.conversation.OpenAiCompatClient;
+import com.lingo.app.conversation.LangChainLlmClient;
 import com.lingo.app.scenario.mapper.ScenarioLineMapper;
 import com.lingo.app.scenario.mapper.ScenarioMapper;
 import com.lingo.app.scenario.mapper.ScenarioVocabMapper;
@@ -44,7 +44,7 @@ public class GenerationService {
   private final ScenarioLineMapper lineMapper;
   private final ScenarioVocabMapper vocabMapper;
   private final LingoProperties props;
-  private final OpenAiCompatClient llmClient;
+  private final LangChainLlmClient llmClient;
   private final ObjectMapper objectMapper;
 
   public ScenarioCard generate(String track, String topic, String cefr) {
