@@ -10,6 +10,10 @@ app/.hbuilderx/
 
 # Env & IDE
 .env
+
+# 本地私密配置（LLM api-key 等）
+server/config/local.yml
+config/local.yml
 *.iml
 .idea/
 .vscode/

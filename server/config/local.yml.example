@@ -1,0 +1,11 @@
+# 复制为 config/local.yml（真实文件已被 .gitignore，不会提交）。
+# 优先级：config/local.yml > 环境变量（LLM_API_KEY 等）> application.yml 默认值；
+# 文件里没写的键仍回落到环境变量。路径相对于「启动命令的工作目录」：
+# mvn spring-boot:run 在 server/ 下启动即 server/config/local.yml；Docker 部署挂载到 /app/config/local.yml。
+
+lingo:
+  llm:
+    # OpenAI 兼容服务（DeepSeek / GLM / Qwen / OpenAI 均可），经 LangChain4j 接入
+    base-url: https://api.deepseek.com
+    api-key: sk-xxxxxxxxxxxxxxxxxxxxxxxx
+    model: deepseek-chat

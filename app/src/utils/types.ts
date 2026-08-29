@@ -122,6 +122,31 @@ export interface FinishResult {
   vocab: ScenarioVocab[];
 }
 
+export interface CompanionView {
+  key: string;
+  name: string;
+  nameZh: string;
+  avatar: string;
+  tagline: string;
+  styleLabel: string;
+  memoryCount: number;
+  memoryPreview: string[];
+}
+
+export interface CompanionMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  feedback: Feedback | null;
+}
+
+export interface CompanionStartResult {
+  conversationId: string;
+  companion: CompanionView;
+  messages: CompanionMessage[];
+  continued: boolean;
+}
+
 export interface VocabEntry {
   id: string;
   word: string;

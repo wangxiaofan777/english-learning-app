@@ -37,6 +37,10 @@
       "style": { "navigationBarTitleText": "口语对话" }
     },
     {
+      "path": "pages/speak/companion",
+      "style": { "navigationBarTitleText": "AI 陪练" }
+    },
+    {
       "path": "pages/vocab/review",
       "style": { "navigationBarTitleText": "复习" }
     },

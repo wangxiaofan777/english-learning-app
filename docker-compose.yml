@@ -36,12 +36,15 @@ services:
       DB_PASSWORD: lingo123
       LLM_BASE_URL: ${LLM_BASE_URL:-}
       LLM_API_KEY: ${LLM_API_KEY:-}
-      LLM_MODEL: ${LLM_MODEL:-qwen3.7-flash}
+      LLM_MODEL: ${LLM_MODEL:-qwen-flash}
       JWT_SECRET: ${JWT_SECRET:-talkbuddy-dev-secret-key-please-change-32-bytes!}
       ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin}
     depends_on:
       postgres:
         condition: service_healthy
+    # LLM 密钥由配置文件管理：宿主机 server/config/local.yml → 容器 /app/config/local.yml
+    volumes:
+      - ./server/config/local.yml:/app/config/local.yml:ro
     ports:
       - "8080:8080"
     restart: unless-stopped

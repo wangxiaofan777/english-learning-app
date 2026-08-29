@@ -52,7 +52,18 @@ docker compose up -d        # 启动 PostgreSQL 16 + Redis 7
 cd server && mvn spring-boot:run   # 默认 postgres profile
 ```
 
-配置真实 LLM（DeepSeek / GLM / Qwen / OpenAI 等 OpenAI 兼容服务均可）：
+配置真实 LLM（DeepSeek / GLM / Qwen / OpenAI 等 OpenAI 兼容服务均可；所有 LLM 调用统一经 **LangChain4j** 接入，服务端不直接拼 HTTP 请求）。
+
+**方式一（推荐）：配置文件。** 复制模板并填入密钥：
+
+```bash
+cd server && cp config/local.yml.example config/local.yml
+# 编辑 config/local.yml，填入 base-url / api-key / model
+```
+
+文件位置相对启动命令的工作目录（`mvn spring-boot:run` 在 `server/` 下启动即 `server/config/local.yml`；Docker 部署挂载到 `/app/config/local.yml`）。真实文件已被 `.gitignore`，不会提交。优先级：`config/local.yml` > 环境变量 > application.yml 默认值；文件里没写的键仍回落到环境变量。
+
+**方式二：环境变量。**
 
 ```bash
 export LLM_BASE_URL="https://api.deepseek.com"
@@ -61,7 +72,7 @@ export LLM_MODEL="deepseek-chat"
 # JWT_SECRET / WX_APPID / WX_SECRET / ADMIN_TOKEN 见 .env.example
 ```
 
-配置后：对话走真实大模型（流式 SSE）、admin 生成接口批量产出新场景。
+配置后：对话走真实大模型（LangChain4j OpenAiStreamingChatModel 流式 SSE）、admin 生成接口批量产出新场景（OpenAiChatModel 补全）。
 
 ## 微信小程序
 
@@ -85,7 +96,7 @@ App 端 v1 对话降级为非流式，语音走文本（原生语音评测为 V1
 | --- | --- | --- |
 | `SPRING_PROFILES_ACTIVE` | `postgres` / `h2` | postgres |
 | `DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD` | PostgreSQL 连接 | localhost:5432/lingo |
-| `LLM_BASE_URL` `LLM_API_KEY` `LLM_MODEL` | OpenAI 兼容 LLM；留空走 Mock | 空（Mock） |
+| `LLM_BASE_URL` `LLM_API_KEY` `LLM_MODEL` | OpenAI 兼容 LLM（经 LangChain4j 接入）；推荐放 `config/local.yml`，留空走 Mock | 空（Mock） |
 | `WX_APPID` `WX_SECRET` | 微信小程序登录；留空走 dev 兜底 | 空 |
 | `JWT_SECRET` | 登录态签名密钥（≥32 字节） | 内置 dev 值（上线必须改） |
 | `ADMIN_TOKEN` | 内容生成管理接口的令牌 | dev-admin |
@@ -117,6 +128,11 @@ curl -X POST http://localhost:8080/api/v1/admin/scenarios/generate \
 - ✅ **每日一句**：每天一句金句带发音，给用户每天打开的理由
 - ✅ **词汇双玩法**：词汇速测（中译英 4 选 1）+ 拼写挑战（听音拼词、首字母提示）
 - ✅ **自由聊天**：不限场景的 AI 聊伴模式，练「敢说」
+- ✅ **AI 陪练搭子（像真人）**：3 个有名字、有性格的人设陪练（阿乐/艾玛/小米），
+  真人式聊天行为——先反应再回应、长短句混合、不再每句都反问、偶尔聊自己的小生活、
+  说错时用 recast 技巧在回复里自然带正（可选「小声说」轻量纠正）；
+  **跨会话长期记忆**：自动抽取你的身份/爱好/目标/计划并持久化，下次开场会接着上次的话题聊，
+  记忆面板可查看/让陪练「忘掉」；回复自动 TTS 朗读（可关）+ 「正在输入…」拟真节奏
 - ✅ **听力理解小测**：精听结尾自动出 3 道理解题（听英文选中文），听力不只跟读还要检验
 - ✅ **打卡月历**：按月视图查看学习轨迹与连续天数
 - ✅ **成绩分享海报**：Canvas 生成个人战绩卡，长按保存转发

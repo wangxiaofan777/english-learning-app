@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
     "com.lingo.app.user.mapper",
     "com.lingo.app.scenario.mapper",
     "com.lingo.app.conversation.mapper",
+    "com.lingo.app.companion.mapper",
     "com.lingo.app.vocab.mapper",
     "com.lingo.app.study.mapper",
     "com.lingo.app.course.mapper"

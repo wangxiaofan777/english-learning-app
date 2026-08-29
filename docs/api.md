@@ -37,6 +37,19 @@ ID 均以字符串形式返回（防 JS 精度丢失）。
 
 `feedback` 结构：`{betterWay, grammarFix: {original, corrected, explain} | null, vocabHints: [{word, meaningZh}]}`。
 
+## AI 陪练（人设 + 长期记忆）
+
+聊天复用上面的 `/conversations/{id}/messages*` 接口（陪练会话由服务端按 mode 区分）。
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/companion` | 陪练列表 `{key, name, nameZh, avatar, tagline, styleLabel, memoryCount, memoryPreview[]}` |
+| POST | `/companion/start` | body `{companionKey}` → 开始/续聊 `{conversationId, companion, messages[], continued}`；同陪练有未结束会话时直接续上 |
+| GET | `/companion/memory?companionKey=` | 该陪练记住的事实列表（英文短句） |
+| POST | `/companion/forget` | body `{companionKey, fact}` → 忘掉一条，返回剩余列表 |
+
+记忆在每轮用户发言后自动抽取沉淀（身份/爱好/职业/目标/计划），下次开场白会引用；提取失败不影响对话。
+
 ## 生词与复习
 
 | 方法 | 路径 | 说明 |

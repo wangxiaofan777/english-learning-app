@@ -36,6 +36,7 @@ public class ChatService {
   private final ObjectMapper objectMapper;
   private final StudyService studyService;
   private final com.lingo.app.course.CourseService courseService;
+  private final com.lingo.app.companion.CompanionService companionService;
 
   private static final ExecutorService SSE_POOL = Executors.newFixedThreadPool(32, r -> {
     Thread t = new Thread(r, "sse-worker");
@@ -75,6 +76,17 @@ public class ChatService {
   /** 对话详情：场景信息 + 全部消息，用于刷新后恢复聊天页 */
   public ConversationDetail detail(Long userId, Long conversationId) {
     ConversationEntity conv = requireOwned(userId, conversationId);
+    if (isCompanion(conv)) {
+      com.lingo.app.companion.CompanionPersona p =
+          com.lingo.app.companion.CompanionPersona.byKey(conv.getCompanionKey());
+      UserProfileEntity profile = profileOf(conv.getUserId());
+      return new ConversationDetail(conv.getId(), null,
+          "AI 陪练 · " + (p == null ? "搭子" : p.nameZh()),
+          p == null ? "AI Companion" : p.name(),
+          profile == null ? null : profile.getCefrLevel(),
+          p == null ? "" : p.tagline(),
+          conv.getStatus(), conv.getMsgCount(), messages(userId, conversationId));
+    }
     ScenarioEntity scenario = scenarioService.require(conv.getScenarioId());
     return new ConversationDetail(conv.getId(), scenario.getId(), scenario.getTitleZh(),
         scenario.getTitleEn(), scenario.getCefr(), scenario.getRoleSetting(),
@@ -90,6 +102,7 @@ public class ChatService {
     saveMessage(conv.getId(), nextIdx, "user", text, null);
     String replyText = generateReply(ctx);
     LlmClient.LlmReply feedback = llmClient.feedback(ctx, replyText);
+    updateMemoryQuietly(conv, text);
     MessageEntity aiMsg = saveMessage(conv.getId(), nextIdx + 1, "assistant", replyText,
         writeJson(feedback));
 
@@ -127,6 +140,7 @@ public class ChatService {
         }
 
         LlmClient.LlmReply feedback = llmClient.feedback(ctx, replyText);
+        updateMemoryQuietly(conv, text);
         MessageEntity aiMsg = saveMessage(conv.getId(), nextIdx + 1, "assistant", replyText,
             writeJson(feedback));
 
@@ -154,7 +168,9 @@ public class ChatService {
   @Transactional
   public FinishResult finish(Long userId, Long conversationId) {
     ConversationEntity conv = requireOwned(userId, conversationId);
-    var vocab = scenarioService.detail(conv.getScenarioId()).vocab();
+    List<ScenarioService.VocabView> vocab = isCompanion(conv)
+        ? List.of()
+        : scenarioService.detail(conv.getScenarioId()).vocab();
 
     if ("finished".equals(conv.getStatus()) && conv.getCoachJson() != null) {
       return new FinishResult(readRecap(conv), vocab);
@@ -180,11 +196,18 @@ public class ChatService {
             .orderByDesc(ConversationEntity::getId)
             .last("limit 30"));
     return convs.stream().map(c -> {
-      String title = "";
-      try {
-        title = scenarioService.require(c.getScenarioId()).getTitleZh();
-      } catch (Exception ignored) {
-        // 场景可能被下架，标题留空即可
+      String title;
+      if (isCompanion(c)) {
+        com.lingo.app.companion.CompanionPersona p =
+            com.lingo.app.companion.CompanionPersona.byKey(c.getCompanionKey());
+        title = "AI 陪练 · " + (p == null ? "搭子" : p.nameZh());
+      } else {
+        try {
+          title = scenarioService.require(c.getScenarioId()).getTitleZh();
+        } catch (Exception ignored) {
+          // 场景可能被下架，标题留空即可
+          title = "";
+        }
       }
       MessageEntity last = messageMapper.selectOne(new LambdaQueryWrapper<MessageEntity>()
           .eq(MessageEntity::getConversationId, c.getId())
@@ -205,10 +228,11 @@ public class ChatService {
   }
 
   private ChatContext buildContext(ConversationEntity conv, String userText) {
+    if (isCompanion(conv)) {
+      return buildCompanionContext(conv, userText);
+    }
     ScenarioEntity scenario = scenarioService.require(conv.getScenarioId());
-    UserProfileEntity profile = profileMapper.selectOne(
-        new LambdaQueryWrapper<UserProfileEntity>()
-            .eq(UserProfileEntity::getUserId, conv.getUserId()));
+    UserProfileEntity profile = profileOf(conv.getUserId());
     List<MessageEntity> msgs = messageMapper.selectList(
         new LambdaQueryWrapper<MessageEntity>()
             .eq(MessageEntity::getConversationId, conv.getId())
@@ -220,7 +244,47 @@ public class ChatService {
     List<ScenarioVocabEntity> vocab = scenarioService.vocabOf(scenario.getId());
     return new ChatContext(conv.getUserId(), conv.getId(), scenario.getTopic(),
         profile == null ? null : profile.getCefrLevel(), scenario.getRoleSetting(),
-        scenarioService.aiLines(scenario.getId()), vocab, history, userText, userTurns);
+        scenarioService.aiLines(scenario.getId()), vocab, history, userText, userTurns,
+        "scene", null, null, List.of());
+  }
+
+  /** 陪练上下文：人设 + 用户画像 + 跨会话记忆，替代场景脚本 */
+  private ChatContext buildCompanionContext(ConversationEntity conv, String userText) {
+    com.lingo.app.companion.CompanionPersona persona =
+        com.lingo.app.companion.CompanionPersona.byKey(conv.getCompanionKey());
+    UserProfileEntity profile = profileOf(conv.getUserId());
+    List<MessageEntity> msgs = messageMapper.selectList(
+        new LambdaQueryWrapper<MessageEntity>()
+            .eq(MessageEntity::getConversationId, conv.getId())
+            .orderByAsc(MessageEntity::getIdx));
+    List<ChatContext.HistoryMsg> history = msgs.stream()
+        .map(m -> new ChatContext.HistoryMsg(m.getRole(), m.getContent()))
+        .toList();
+    int userTurns = (int) msgs.stream().filter(m -> "user".equals(m.getRole())).count();
+    List<String> memories = companionService.readFacts(conv.getUserId(), conv.getCompanionKey());
+    return new ChatContext(conv.getUserId(), conv.getId(), "AI陪练",
+        profile == null ? null : profile.getCefrLevel(),
+        persona == null ? "a friendly English companion" : persona.personaEn(),
+        List.of(), List.of(), history, userText, userTurns,
+        "companion", persona == null ? "" : persona.name(),
+        companionService.nicknameOf(conv.getUserId()), memories);
+  }
+
+  private boolean isCompanion(ConversationEntity conv) {
+    return "companion".equals(conv.getMode());
+  }
+
+  /** 陪练模式下从本轮发言里沉淀长期记忆；失败不影响对话 */
+  private void updateMemoryQuietly(ConversationEntity conv, String userText) {
+    if (isCompanion(conv)) {
+      companionService.updateMemory(conv.getUserId(), conv.getCompanionKey(), userText);
+    }
+  }
+
+  private UserProfileEntity profileOf(Long userId) {
+    return profileMapper.selectOne(
+        new LambdaQueryWrapper<UserProfileEntity>()
+            .eq(UserProfileEntity::getUserId, userId));
   }
 
   private ConversationEntity requireOwned(Long userId, Long conversationId) {

@@ -3,6 +3,8 @@ import type {
   AdminStatus,
   Badge,
   CalendarView,
+  CompanionStartResult,
+  CompanionView,
   ConversationDetail,
   CourseCard,
   CourseDetail,
@@ -156,6 +158,13 @@ export const api = {
   stats: () => request<StatsView>("GET", "/api/v1/stats"),
   achievements: () => request<Badge[]>("GET", "/api/v1/achievements"),
   freeTalk: () => request<ScenarioCard>("GET", "/api/v1/scenarios/free-talk"),
+  companionList: () => request<CompanionView[]>("GET", "/api/v1/companion"),
+  companionStart: (companionKey: string) =>
+    request<CompanionStartResult>("POST", "/api/v1/companion/start", { companionKey }),
+  companionMemory: (companionKey: string) =>
+    request<string[]>("GET", `/api/v1/companion/memory?companionKey=${encodeURIComponent(companionKey)}`),
+  companionForget: (companionKey: string, fact: string) =>
+    request<string[]>("POST", "/api/v1/companion/forget", { companionKey, fact }),
   calendar: (month?: string) =>
     request<CalendarView>("GET", `/api/v1/study/calendar${month ? `?month=${month}` : ""}`),
   // 内容运营台（admin token 鉴权，与用户体系隔离）

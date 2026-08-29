@@ -12,6 +12,14 @@
       </view>
     </view>
 
+    <view class="card companion-card" @tap="goCompanion">
+      <view class="cb-body">
+        <text class="cb-title">🤖 AI 陪练 · 像真人一样聊</text>
+        <text class="cb-sub">有个性的陪练搭子，记得你说过的话，说错悄悄纠正</text>
+      </view>
+      <text class="cb-go">找搭子 →</text>
+    </view>
+
     <view class="card free-talk-card" @tap="startFreeTalk">
       <view class="ft-body">
         <text class="ft-title">🎙️ 自由聊天</text>
@@ -100,6 +108,10 @@ async function startChat(scenarioId: string) {
   }
 }
 
+function goCompanion() {
+  uni.navigateTo({ url: "/pages/speak/companion" });
+}
+
 async function startFreeTalk() {
   uni.showLoading({ title: "找聊伴…" });
   try {
@@ -123,6 +135,36 @@ function goShadow(scenarioId: string) {
 .hall-page {
   min-height: 100vh;
   padding: 24rpx 0 60rpx;
+}
+
+.companion-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(120deg, #4f46e5, #7c3aed);
+  color: #ffffff;
+}
+
+.cb-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.cb-title {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.cb-sub {
+  font-size: 22rpx;
+  opacity: 0.85;
+}
+
+.cb-go {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .free-talk-card {

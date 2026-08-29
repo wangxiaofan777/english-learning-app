@@ -1,4 +1,4 @@
-package com.lingo.app.conversation;
+package com.lingo.app.companion;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -7,21 +7,15 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-@TableName("t_conversation")
-public class ConversationEntity {
+@TableName("t_companion_memory")
+public class CompanionMemoryEntity {
 
   @TableId(type = IdType.ASSIGN_ID)
   private Long id;
 
   private Long userId;
-  private Long scenarioId;
-  /** scene = 场景角色扮演（默认）；companion = AI 陪练 */
-  private String mode;
   private String companionKey;
-  private String status;
-  private String aiSummary;
-  private String coachJson;
-  private Integer msgCount;
-  private LocalDateTime createdAt;
+  /** JSON 字符串数组：关于用户的事实（英文短句，供 prompt 引用） */
+  private String memoryJson;
   private LocalDateTime updatedAt;
 }

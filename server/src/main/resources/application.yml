@@ -6,6 +6,10 @@ spring:
     name: lingo-server
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:postgres}
+  # 本地私密配置（LLM api-key 等）：从启动目录下 config/local.yml 读取，
+  # 该文件优先级高于环境变量占位符；文件里没写的键仍回落到环境变量
+  config:
+    import: "optional:file:./config/local.yml"
   sql:
     init:
       mode: always
@@ -29,7 +33,7 @@ lingo:
     appid: ${WX_APPID:}
     secret: ${WX_SECRET:}
   llm:
-    # 留空时对话走内置 Mock，无需任何密钥即可完整体验
+    # 留空时对话走内置 Mock；配置后经 LangChain4j（OpenAI 兼容）调用真实模型
     base-url: ${LLM_BASE_URL:}
     api-key: ${LLM_API_KEY:}
     model: ${LLM_MODEL:deepseek-chat}
