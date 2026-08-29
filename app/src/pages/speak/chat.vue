@@ -256,13 +256,17 @@ function goListen() {
   }
 }
 
-function restart() {
-  uni.redirectTo({
-    url: `/pages/speak/chat?id=${conversationId}`,
-    success: () => undefined,
-  });
-  // 状态为 finished 的会话无法继续，这里引导回大厅新开
-  setTimeout(() => uni.switchTab({ url: "/pages/speak/hall" }), 50);
+async function restart() {
+  // 真正重开一轮：用同一场景创建新会话并跳转（旧会话已 finished，无法续聊）
+  if (!detail.value?.scenarioId) return;
+  uni.showLoading({ title: "准备新一轮…" });
+  try {
+    const conv = await api.createConversation(detail.value.scenarioId);
+    uni.hideLoading();
+    uni.redirectTo({ url: `/pages/speak/chat?id=${conv.conversationId}` });
+  } catch (e) {
+    uni.hideLoading();
+  }
 }
 
 function scrollBottom() {

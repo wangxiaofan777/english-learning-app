@@ -110,13 +110,13 @@ public class GenerationService {
     return result;
   }
 
-  public List<ScenarioEntity> listBySource(String source, long page, long size) {
+  /** 分页返回，含总数——管理后台按来源翻页用 */
+  public Page<ScenarioEntity> listBySource(String source, long page, long size) {
     return scenarioMapper.selectPage(
         Page.of(page, size),
         new LambdaQueryWrapper<ScenarioEntity>()
             .eq(ScenarioEntity::getSource, source)
-            .orderByAsc(ScenarioEntity::getId))
-        .getRecords();
+            .orderByAsc(ScenarioEntity::getId));
   }
 
   /** 用新内容替换场景正文（角色设定/台词/生词），标题与 id 不动 */

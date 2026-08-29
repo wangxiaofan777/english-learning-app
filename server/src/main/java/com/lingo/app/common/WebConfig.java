@@ -26,6 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
             "/api/v1/auth/**",
             "/api/v1/admin/**"
         );
+    // 管理端的鉴权拦截器由 admin 包内的 AdminWebConfig 自行注册，与用户体系互不感知
   }
 
   @Override

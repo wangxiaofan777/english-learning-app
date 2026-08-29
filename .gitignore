@@ -8,6 +8,10 @@ app/dist/
 app/unpackage/
 app/.hbuilderx/
 
+# 管理后台
+admin/node_modules/
+admin/dist/
+
 # Env & IDE
 .env
 

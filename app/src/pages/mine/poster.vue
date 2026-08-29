@@ -109,7 +109,42 @@ function saveOrPreview() {
   uni.canvasToTempFilePath({
     canvasId: "poster",
     success: (res) => {
-      uni.previewImage({ urls: [res.tempFilePath] });
+      // #ifdef H5
+      // H5 无相册 API，且 previewImage 对 canvas 产出的 data: URL 不弹预览层——
+      // 直接触发浏览器下载，落点是浏览器的下载目录
+      const link = document.createElement("a");
+      link.href = res.tempFilePath;
+      link.download = `talkbuddy-成绩卡-${new Date().toISOString().slice(0, 10)}.png`;
+      link.click();
+      uni.showToast({ title: "成绩卡已开始下载", icon: "none" });
+      // #endif
+      // #ifndef H5
+      uni.saveImageToPhotosAlbum({
+        filePath: res.tempFilePath,
+        success: () => {
+          uni.showToast({ title: "已保存到相册", icon: "success" });
+        },
+        fail: (err) => {
+          const msg = String(err?.errMsg ?? "");
+          if (msg.includes("auth") || msg.includes("deny")) {
+            // 相册权限被拒：引导去设置页开启
+            uni.showModal({
+              title: "需要相册权限",
+              content: "请在设置中允许保存图片到相册，再回来保存成绩卡",
+              confirmText: "去设置",
+              success: (m) => {
+                if (m.confirm) {
+                  uni.openSetting({});
+                }
+              },
+            });
+          } else {
+            // 其他失败（如开发工具不支持）退回预览兜底
+            uni.previewImage({ urls: [res.tempFilePath] });
+          }
+        },
+      });
+      // #endif
     },
     fail: () => {
       uni.showToast({ title: "生成失败，请截图保存", icon: "none" });

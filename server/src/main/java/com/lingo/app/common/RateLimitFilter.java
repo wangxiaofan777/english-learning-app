@@ -24,9 +24,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
   private static final long WINDOW_MILLIS = 60_000L;
   private static final int MAX_BUCKETS = 50_000;
 
-  /** 限流规则：路径前缀 → 每分钟允许的请求数 */
+  /** 限流规则：路径前缀 → 每分钟允许的请求数（靠前优先匹配） */
   private static final String[][] RULES = {
       {"/api/v1/auth/", "10"},
+      // 登录口令爆破单独收紧；其余管理端点走下面的通用额度
+      {"/api/v1/admin/auth/login", "5"},
       {"/api/v1/admin/", "30"},
       {"/api/v1/conversations", "60"},
       {"/api/v1/companion", "60"},

@@ -65,10 +65,6 @@
       "style": { "navigationBarTitleText": "分享海报" }
     },
     {
-      "path": "pages/admin/content",
-      "style": { "navigationBarTitleText": "内容运营台" }
-    },
-    {
       "path": "pages/listen/listen",
       "style": { "navigationBarTitleText": "听力精听" }
     },

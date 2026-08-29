@@ -11,9 +11,10 @@ Spring Boot 3 后端，零配置即可完整体验（内置 Mock LLM 与 12 个�
 english-learning-app/
 ├── server/          # Spring Boot 3 + MyBatis-Plus 后端（Java 17）
 ├── app/             # uni-app（Vue3 + TS）前端：微信小程序 / App / H5
+├── admin/           # 独立管理后台（Vue3 + Vite）：仪表盘 / 内容运营 / 用户查询
 ├── docs/            # 产品设计文档、API 契约
 ├── scripts/         # 冒烟测试、TLS 证书生成、图标生成脚本
-└── docker-compose.yml  # 生产部署：PostgreSQL + 后端 + Nginx(H5 + API + TLS)
+└── docker-compose.yml  # 生产部署：PostgreSQL + 后端 + Nginx(H5 + API + TLS) + 管理后台
 ```
 
 ## 快速开始（零配置体验）
@@ -39,7 +40,17 @@ npm run dev:h5
 
 「游客身份快速体验」→ 选目标 → 测评定级 → 开始学习。全流程无需任何密钥。
 
-### 3. 跑端到端冒烟（可选）
+### 3. 启动管理后台（可选）
+
+```bash
+cd admin
+npm install
+npm run dev
+```
+
+打开 `http://localhost:5174`，用 `ADMIN_TOKEN`（h2 模式下任意非空值 + 设置环境变量，见下节）登录。开发模式同样代理 `/api` 到 8080。
+
+### 4. 跑端到端冒烟（可选）
 
 ```bash
 ADMIN_TOKEN=$(grep ^ADMIN_TOKEN .env | cut -d= -f2) bash scripts/smoke.sh
@@ -85,14 +96,36 @@ Docker 部署读根目录 `.env`（模板见 `.env.example`）；裸机运行读
 | `DB_PASSWORD` | PostgreSQL 密码 **[必填]** | 无（缺失拒绝启动） |
 | `LLM_BASE_URL` `LLM_API_KEY` `LLM_MODEL` | OpenAI 兼容 LLM（经 LangChain4j 接入）**[必填]**；未配置且 `LLM_MOCK_ALLOWED=false` 时拒绝启动 | 无 |
 | `JWT_SECRET` | 登录态签名密钥 **[必填]**（≥32 字节随机值） | 无（缺失拒绝启动） |
-| `ADMIN_TOKEN` | 内容运营/生成接口的令牌 **[必填]** | 无（缺失拒绝启动） |
+| `ADMIN_TOKEN` | 管理后台登录密码（同时是脚本 `X-Admin-Token` 通道的令牌）**[必填]** | 无（缺失拒绝启动） |
 | `GUEST_ENABLED` | 游客登录开关（`false` 时仅允许微信登录） | true |
 | `WX_APPID` `WX_SECRET` | 微信小程序登录凭据；未配置且 `WX_DEV_FALLBACK=false` 时微信登录不可用 | 空 |
 | `WX_DEV_FALLBACK` | 微信 dev 兜底（code 直接派生身份），**生产必须 false** | false |
 | `LLM_MOCK_ALLOWED` | 允许无密钥时降级 Mock LLM，**生产必须 false** | false |
 | `CORS_ALLOWED_ORIGINS` | 跨域白名单（逗号分隔）；H5 同源反代时留空即可 | 空（不限制） |
 
-## 管理接口（内容冷启动）
+## 管理后台（独立站点）
+
+管理功能**不内嵌在用户端**（不会打进小程序/App 包），而是独立的 Web 后台：`admin/` 工程，
+包含**运营仪表盘**（用户/活跃/内容统计）、**内容运营**（场景生成、模板场景 AI 单篇/批量重写）、
+**用户查询**（只读列表，不返回 OpenID/手机号等敏感标识）。
+
+安全设计：
+
+- 登录：以 `ADMIN_TOKEN` 作为管理密码，服务端校验后签发 **2 小时 HttpOnly + SameSite=Strict Cookie 会话**；
+  静态令牌不落浏览器存储，XSS 也拿不到会话
+- 兼容脚本通道：原 `X-Admin-Token` 请求头仍然有效（冒烟测试/CI 用），与会话通道并存
+- 独立部署入口：compose 里默认只绑定宿主机回环 `127.0.0.1:8089/8444`，公网不可达；
+  远程用 SSH 隧道 `ssh -L 8089:127.0.0.1:8089 -L 8444:127.0.0.1:8444 <host>` 后访问 `https://127.0.0.1:8444`
+- 登录接口限流 5 次/分（其余管理接口 30 次/分），失败与成功均有审计日志
+
+生产使用（compose 已含 `admin` 服务）：
+
+```bash
+docker compose up -d --build admin
+# 本机访问：https://localhost:8444 （自签名证书需点「继续访问」）
+```
+
+脚本通道（内容冷启动示例）：
 
 ```bash
 curl -X POST http://localhost:8088/api/v1/admin/scenarios/generate \
@@ -100,7 +133,21 @@ curl -X POST http://localhost:8088/api/v1/admin/scenarios/generate \
   -d '{"track":"daily","topic":"机场值机","cefr":"A2"}'
 ```
 
-配置 LLM 后该接口按设计文档 §7.3 的流水线生成场景（对话脚本 + 生词卡 + 校验）并入库；未配置时返回模板场景。浏览器版内容运营台：H5 访问 `/#/pages/admin/content`，输入 `.env` 中的 `ADMIN_TOKEN`。
+配置 LLM 后该接口按设计文档 §7.3 的流水线生成场景（对话脚本 + 生词卡 + 校验）并入库；未配置时返回模板场景。
+
+### 代码隔离与剥离
+
+管理后台与业务代码是**单向依赖**（admin → 领域服务/表，领域代码零反向依赖），三端物理分离：
+
+- 前台 `app/`（uni-app）与管理台 `admin/`（Vite SPA）是两个独立工程，无共享文件，各自独立构建/部署
+- 服务端管理代码全部收敛在 `server/src/main/java/com/lingo/app/admin/` 一个包内（拦截器注册也在包内的 `AdminWebConfig`，公共配置不含管理端代码）
+
+剥离管理后台只需 4 步，不碰任何业务代码：
+
+1. `rm -rf admin/ server/src/main/java/com/lingo/app/admin/`
+2. `LingoApplication` 的 `@MapperScan` 移除 `"com.lingo.app.admin.mapper"` 一行
+3. `RateLimitFilter` 移除 login 限流那一行规则（可选）
+4. `docker-compose.yml` 移除 `admin` 服务（可选）
 
 ## 部署上线（Docker）
 
@@ -109,11 +156,11 @@ curl -X POST http://localhost:8088/api/v1/admin/scenarios/generate \
 ```bash
 cp .env.example .env && vim .env          # 填入全部 [必填] 项
 ./scripts/gen_certs.sh                    # 自签名证书（正式上线替换为 CA 证书）
-docker compose up -d --build              # 构建 postgres + server + web
+docker compose up -d --build              # 构建 postgres + server + web + admin
 curl -k https://localhost:8443/api/v1/health
 ```
 
-- 对外端口：`8443`（HTTPS 业务）、`8088`（HTTP，仅跳转到 HTTPS）；数据库与后端**不对宿主机暴露端口**
+- 对外端口：`8443`（HTTPS 业务）、`8088`（HTTP，仅跳转到 HTTPS）；**管理后台默认只绑回环** `127.0.0.1:8089/8444`（公网不可达，远程走 SSH 隧道）；数据库与后端**不对宿主机暴露端口**
 - HTTPS：nginx 监听 443，证书挂载自 `./certs/`；正式域名上线时把 CA 签发的 `fullchain.pem` / `privkey.pem` 放进 `./certs/` 并 `docker compose restart web`
 - 日志：`docker compose logs -f server`，或落盘日志（数据卷 `lingo-logs`，按天轮转、保留 14 天）
 - 健康检查：`/api/v1/health` 含数据库探活；compose 内置 server/web/postgres healthcheck + `restart: always`
@@ -132,6 +179,7 @@ curl -k https://localhost:8443/api/v1/health
 - [ ] 小程序/App 生产构建前在 `app/.env.production` 设置 `VITE_API_BASE_URL=https://你的域名`
 - [ ] 数据库定期备份：`docker compose exec postgres pg_dump -U lingo lingo > backup_$(date +%F).sql`
 - [ ] 冒烟通过：`ADMIN_TOKEN=... bash scripts/smoke.sh`
+- [ ] 管理后台可登录：`https://127.0.0.1:8444`（密码即 `ADMIN_TOKEN`）；如需公网访问，先收紧防火墙并更换正式证书
 - [ ] CI 绿：GitHub Actions 自动跑后端测试 + 前端类型检查
 
 ## 已实现范围（对应设计文档 §6 MVP+）
@@ -159,7 +207,7 @@ curl -k https://localhost:8443/api/v1/health
 - ✅ **听力理解小测**：精听结尾自动出 3 道理解题（听英文选中文），听力不只跟读还要检验
 - ✅ **打卡月历**：按月视图查看学习轨迹与连续天数
 - ✅ **成绩分享海报**：Canvas 生成个人战绩卡，长按保存转发
-- ✅ **内容真实化流水线**：admin 接口单篇/批量重写模板场景（需 LLM key），配套浏览器版内容运营台（H5 访问 `/#/pages/admin/content`）
+- ✅ **内容真实化流水线**：独立管理后台单篇/批量重写模板场景（需 LLM key），另保留 `X-Admin-Token` 脚本通道
 - ✅ 每日三件事（跟随当前课时）、streak 打卡、学习统计周报
 - ✅ H5 / 微信小程序构建通过（5 Tab）；App 端随 uni-app 输出
 - ⏳ V1：音素级发音评测（腾讯智聆/讯飞）、微信订阅消息学习提醒、订阅支付、App 流式

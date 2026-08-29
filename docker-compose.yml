@@ -70,6 +70,28 @@ services:
       retries: 5
     restart: always
 
+  # 独立管理后台（与用户端完全分离）：默认只绑定宿主机回环地址，
+  # 远程访问用 SSH 隧道：ssh -L 8089:127.0.0.1:8089 <host> 后打开 https://127.0.0.1:8089
+  # （隧道走 80 跳转 443，需同时 -L 8444:127.0.0.1:8444；或临时改为映射 8444）
+  # 确需公网直接访问时改为 "8089:80" / "8444:443"，并自行收紧防火墙、更换管理域名的正式证书
+  admin:
+    build: ./admin
+    container_name: talkbuddy-admin
+    depends_on:
+      server:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8089:80"
+      - "127.0.0.1:8444:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:80/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: always
+
 volumes:
   lingo-pgdata:
   lingo-logs:

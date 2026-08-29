@@ -206,22 +206,6 @@ export interface CalendarView {
   streakDays: number;
 }
 
-export interface AdminStatus {
-  total: number;
-  seed: number;
-  ai: number;
-  template: number;
-}
-
-export interface AdminScenarioRow {
-  id: string;
-  titleZh: string;
-  titleEn: string;
-  track: string;
-  cefr: string;
-  source: string;
-}
-
 export interface StatsView {
   totalMinutes: number;
   totalDialogs: number;

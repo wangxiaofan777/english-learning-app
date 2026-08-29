@@ -1,7 +1,7 @@
 # API 契约 v0.1
 
 Base URL：`/api/v1`。统一响应 `{"code":0,"message":"ok","data":...}`；业务错误 code=400/401/404/500。
-鉴权：除 `health`、`auth/**`、`admin/**` 外均需 `Authorization: Bearer <token>`。
+鉴权：除 `health`、`auth/**` 外均需 `Authorization: Bearer <token>`；`admin/**` 走独立的管理端鉴权（会话 Cookie 或 `X-Admin-Token`，见下文）。
 ID 均以字符串形式返回（防 JS 精度丢失）。
 
 ## 认证与用户
@@ -82,12 +82,21 @@ child→小学(KET/PET)；teen 按等级→初中(中考)/高中(高考)；成�
 | GET | `/study/calendar?month=YYYY-MM` | 打卡月历：`{month, days:[{date, minutes, xp}], studiedCount, streakDays}` |
 | POST | `/study/record` | 端上练习计时，body `{kind, minutes?, count?}`；XP 按行为类型由服务端结算（对话+30/精听+20/跟读+25/Boss+40/复习每词+2/速测与拼写每题+3/打卡+5） |
 
-## 管理（X-Admin-Token 鉴权）
+## 管理后台（独立站点 admin/，与用户端分离）
+
+鉴权双通道（`AdminAuthInterceptor` 统一校验，均常量时间比较）：
+1. **会话 Cookie**：后台站点登录后获得 `admin_session`（HttpOnly + SameSite=Strict，2 小时）；登录接口限流 5 次/分；
+2. **静态令牌**：请求头 `X-Admin-Token`（脚本/冒烟测试用）；其余管理接口限流 30 次/分。写操作有审计日志。
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
+| POST | `/admin/auth/login` | body `{password}`（值 = `ADMIN_TOKEN`）→ Set-Cookie 会话 `{expiresIn: 7200}`；失败 401 |
+| POST | `/admin/auth/logout` | 清除会话 Cookie |
+| GET | `/admin/auth/me` | 会话探活 `{authenticated: true}` |
+| GET | `/admin/stats` | 仪表盘：`{users{total,guest,wx,todayNew}, study{todayActive,todayMinutes}, vocabTotal, conversations{total,messages}, content{total,seed,ai,template}}` |
+| GET | `/admin/users?page=&size=&q=` | 用户只读列表 `{total, page, size, rows[]}`；`q` 按昵称/OpenID 模糊；**不返回 openId/unionId/phone** |
 | POST | `/admin/scenarios/generate` | body `{track, topic, cefr}`；配置 LLM 后按流水线生成入库，否则模板兜底 |
 | GET | `/admin/content/status` | 内容分层统计 `{total, seed, ai, template}` |
-| GET | `/admin/content/scenarios?source=template&page=` | 按来源列出场景（内容运营台用） |
+| GET | `/admin/content/scenarios?source=template&page=` | 按来源分页列出场景 `{total, page, size, rows[]}`（内容运营台用） |
 | POST | `/admin/content/rewrite` | body `{scenarioId}`；LLM 重写单篇正文（id/标题不变，课时引用不断链） |
 | POST | `/admin/content/rewrite-batch` | body `{limit}`；批量重写，返回 `{rewritten, remaining}` |
